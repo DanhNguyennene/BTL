@@ -10,10 +10,10 @@ const {
 } = require('../controllers/book.controllers');
 
 router.get('/', getBooks);
-router.get('/:id', getBook);
+router.get('/:book_id', getBook);
 router.post('/', createBook);
-router.put('/:id', updateBook);
-router.delete('/:id', deleteBook);
+router.put('/:book_id', updateBook);
+router.delete('/:book_id', deleteBook);
 router.delete('/', deleteAllBooks); 
 
 module.exports = router;

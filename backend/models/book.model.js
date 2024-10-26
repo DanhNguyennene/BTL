@@ -5,15 +5,15 @@ module.exports = {
         try {
             const [rows] = await connection.query('SELECT * FROM book');
             return rows;
-        } catch (error){
+        } catch (error) {
             console.log(error);
         }
     },
-    getBookByID: async (id) => {
+    getBookByID: async (book_id) => {
         try {
-            const [rows] = await connection.query('SELECT * FROM book WHERE id = ?', [id]);
+            const [rows] = await connection.query('SELECT * FROM book WHERE book_id = ?', [book_id]);
             return rows.length ? rows[0] : null;
-        } catch (error) { 
+        } catch (error) {
             console.log(error);
             throw error;
         }
