@@ -12,7 +12,7 @@ const {
 router.get('/', getBooks);
 router.get('/:book_id', getBook);
 router.post('/', createBook);
-router.put('/:book_id', updateBook);
+router.patch('/:book_id', updateBook);
 router.delete('/:book_id', deleteBook);
 router.delete('/', deleteAllBooks); 
 

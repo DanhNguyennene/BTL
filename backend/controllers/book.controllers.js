@@ -1,10 +1,12 @@
-const { allBooks, getBookByID } = require('../models/book.model');
+const { getAllBooks, getBookByID, createABook,
+    updateABook, deleteABook, deleteAllofBooks
+ } = require('../models/book.model');
 const connection = require('../config/database');
 
 
 const getBooks = async (req, res) => {
     try {
-        const books = await allBooks();
+        const books = await getAllBooks();
         res.json(books);
     } catch (error) {
         console.error('Error in getBooks:', error);
@@ -28,27 +30,20 @@ const getBook = async (req, res) => {
 
 const createBook = async (req, res) => {
     try {
-        if (Array.isArray(req.body)) {
-            const result = await getBookCollection(client).insertMany(req.body);
-            res.status(201).json({
-                message: `${result.insertedCount} books were added successfully`,
-                insertedIds: result.insertedIds
-            });
-        } else {
-            const result = await getBookCollection(client).insertOne(req.body);
-            res.status(201).json(result);
-        }
+        const { title, price, author_id, pu_id } = req.body;
+        const result = await createABook(title, price, author_id, pu_id);
+        res.status(201).json(result);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 const updateBook = async (req, res) => {
     try {
-        const result = await getBookCollection(client).updateOne(
-            { _id: new ObjectId(req.params.id) },
-            { $set: req.body }
-        );
-        if (result.matchedCount === 0) {
+        const book_id = req.params.book_id;
+        const { title, price, author_id, pu_id } = req.body;
+        console.log(req.body);
+        const result = await updateABook(book_id, title, price, author_id, pu_id);
+        if (!result) {
             return res.status(404).json({ message: 'Book not found' });
         }
         res.json(result);
@@ -58,25 +53,20 @@ const updateBook = async (req, res) => {
 };
 const deleteBook = async (req, res) => {
     try {
-        const result = await getBookCollection(client).deleteOne({
-            _id: new ObjectId(req.params.id)
-        });
-        if (result.deletedCount === 0) {
+        const book_id = req.params.book_id;
+        const result = await deleteABook(book_id);
+        if (!result){
             return res.status(404).json({ message: 'Book not found' });
         }
-        res.json({ message: 'Book deleted successfully' });
+        res.status(200).json({ message: 'Book deleted successfully' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 const deleteAllBooks = async (req, res) => {
-    console.log('Delete all books route called');
     try {
-        const result = await getBookCollection(client).deleteMany({});
-        if (result.deletedCount === 0) {
-            return res.status(404).json({ message: 'No books found to delete' });
-        }
-        res.json({ message: 'All books deleted successfully', deletedCount: result.deletedCount });
+        await deleteAllofBooks();
+        res.status(200).json({ message: 'All books deleted successfully' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
