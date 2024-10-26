@@ -1,6 +1,21 @@
-const {client} = require('../config/db.config');
-const getBookCollection = (client) => {
-    return client.db('BookInventory').collection("books");
-};
+const connection = require('../config/database');
 
-module.exports = { getBookCollection };
+module.exports = {
+    allBooks: async () => {
+        try {
+            const [rows] = await connection.query('SELECT * FROM book');
+            return rows;
+        } catch (error){
+            console.log(error);
+        }
+    },
+    getBookByID: async (id) => {
+        try {
+            const [rows] = await connection.query('SELECT * FROM book WHERE id = ?', [id]);
+            return rows.length ? rows[0] : null;
+        } catch (error) { 
+            console.log(error);
+            throw error;
+        }
+    }
+}

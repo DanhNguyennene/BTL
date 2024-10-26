@@ -1,23 +1,10 @@
-const { client } = require('../config/db.config');
-const { getBookCollection } = require('../models/book.model');
-const { ObjectId } = require('mongodb');
+const { allBooks, getBookByID } = require('../models/book.model');
+const connection = require('../config/database');
+
+
 const getBooks = async (req, res) => {
     try {
-        const collection = getBookCollection(client);
-        console.log('Database:', collection.dbName);
-        console.log('Collection:', collection.collectionName);
-        
-        const books = await collection.find({}).toArray();
-        console.log('Total books found:', books.length);
-        
-        books.forEach(book => {
-            console.log({
-                id: book._id.toString(),
-                title: book.bookTitle,
-                idType: typeof book._id
-            });
-        });
-        
+        const books = await allBooks();
         res.json(books);
     } catch (error) {
         console.error('Error in getBooks:', error);
@@ -27,64 +14,31 @@ const getBooks = async (req, res) => {
 
 const getBook = async (req, res) => {
     try {
-        const bookId = req.params.id;
-        console.log('Requested ID:', bookId);
-        
-        // Verify the collection
-        const collection = getBookCollection(client);
-        
-        // Get all books and check if the ID exists
-        const allBooks = await collection.find({}).toArray();
-        const exists = allBooks.some(book => book._id.toString() === bookId);
-        console.log('ID exists in collection:', exists);
-        
-        if (exists) {
-            console.log('Found matching ID in collection');
-            const matchingBooks = allBooks.filter(book => 
-                book._id.toString() === bookId
-            );
-            console.log('Matching books:', matchingBooks);
-        }
-
-        const book = await collection.findOne({ _id: new ObjectId(bookId) });
-        
+        const book_id = req.params.id;
+        const book = await getBookByID(book_id);
         if (!book) {
-            console.log('No book found by ObjectId, checking for raw ID match');
-            const rawBook = await collection.findOne({ _id: bookId });
-            console.log('Raw query result:', rawBook);
-            if (!rawBook) { // This should check rawBook, not book
-                return res.status(404).json({ 
-                    message: 'Book not found',
-                    requestedId: bookId,
-                    exists: exists,
-                    totalBooks: allBooks.length
-                });
-            }
-            res.json(rawBook); 
-        } else {
-            res.json(book); 
+            return res.status(404).json({ message: 'Book not found' });
         }
+        res.status(200).json(book);
     } catch (error) {
         console.error('Error in getBook:', error);
-        res.status(500).json({ 
-            message: error.message,
-            type: error.constructor.name
-        });
+        res.status(500).json({ message: error.message });
     }
 };
+
 const createBook = async (req, res) => {
-    try{
-        if (Array.isArray(req.body)){
+    try {
+        if (Array.isArray(req.body)) {
             const result = await getBookCollection(client).insertMany(req.body);
-            res.status(201).json({ 
-                message: `${result.insertedCount} books were added successfully`, 
-                insertedIds: result.insertedIds 
+            res.status(201).json({
+                message: `${result.insertedCount} books were added successfully`,
+                insertedIds: result.insertedIds
             });
-        }else{
+        } else {
             const result = await getBookCollection(client).insertOne(req.body);
             res.status(201).json(result);
         }
-    }catch(error){
+    } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };

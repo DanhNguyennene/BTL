@@ -1,6 +1,6 @@
 # Book Inventory API
 
-A RESTful API built with Node.js, Express, and MongoDB for managing a book inventory system. This API provides endpoints for creating, reading, updating, and deleting book records.
+A RESTful API built with Node.js, Express, and MySQL2 for managing a book inventory system. This API provides endpoints for creating, reading, updating, and deleting book records.
 
 
 # Table of Content
@@ -13,7 +13,7 @@ A RESTful API built with Node.js, Express, and MongoDB for managing a book inven
 
 ## Prerequisites
 - Node.js (v14 or higher)
-- MongoDB (v4.4 or higher)
+- MySQL2/promise
 - npm or yarn package manager
 
 ## Installation 
@@ -28,23 +28,26 @@ npm install
 ```
 
 3. Create a `.env` file in the root directory with the following variables:
+đọc env.example là biết
 ```bash
-MONGO_URI=your_mongodb_connection_string
-PORT=5000
-NODE_ENV=development
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=<pass của cái mysql>
+DB_NAME=ebookstoredb
 ```
 
 4. Start the server:
 
 ```bash
-npm start
+nodemon
 ```
 
 ## Project Structure
 ```bash
 backend/
 ├── config/
-│   └── db.config.js         # MongoDB connection configuration
+│   └── database.js         # MongoDB connection configuration
 ├── controllers/
 │   └── book.controllers.js  # Book-related business logic
 ├── middleware/
@@ -73,11 +76,6 @@ Create a Book
 ```http
 httpCopyPOST /api/books
 Content-Type: application/json
-
-{
-  "bookTitle": "Sample Book",
-  // Add other book properties
-}
 ```
 
 Create Multiple Books
@@ -99,6 +97,6 @@ Content-Type: application/json
 
 The application uses MongoDB with the following structure:
 
-- Database Name: `BookInventory`
-- Collection Name: `books`
+- Database Name: `ebookstoredb`
+- Collection Name: `book`
 

@@ -1,7 +1,8 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { client } = require('./config/db.config');
-const { initBookCollection } = require('./models/book.model');
+const mysql = require('mysql2');
+
 const bookRoutes = require('./routes/book.routes');
 
 const app = express();
@@ -12,11 +13,9 @@ app.use(express.json());
 
 app.use('/api/books', bookRoutes);
 
+
 const startServer = async () => {
     try {
-        await client.connect();
-        
-        
         app.listen(port, () => {
             console.log(`Server running on port ${port}`);
         });
