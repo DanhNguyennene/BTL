@@ -1,5 +1,5 @@
 const { getAllBooks, getBookByID, createABook,
-    updateABook, deleteABook, deleteAllofBooks
+    updateABook, deleteABook, deleteAllofBooks, filterBook
  } = require('../models/book.model');
 const connection = require('../config/database');
 
@@ -13,7 +13,22 @@ const getBooks = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-
+const filterBooks = async (req, res) => {
+    try {
+        const filters = {
+            title: req.query.title,
+            minPrice: req.query.minPrice,
+            maxPrice: req.query.maxPrice,
+            author_id: req.query.author_id,
+            pu_id: req.query.pu_id
+        };
+        const books = await filterBook(filters);
+        res.json(books);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: 'Database query error' });
+    }
+};
 const getBook = async (req, res) => {
     try {
         const book_id = req.params.book_id;
@@ -77,5 +92,6 @@ module.exports = {
     deleteAllBooks,
     createBook,
     updateBook,
-    deleteBook
+    deleteBook,
+    filterBooks
 };

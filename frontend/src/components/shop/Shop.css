@@ -1,0 +1,137 @@
+/* Base container styling, similar to #root in App.css */
+.container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2rem;
+    box-sizing: border-box;
+}
+
+/* Shop header styling */
+.shop-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+/* Search bar styling for Shop page */
+.search-bar {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 600px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.search-bar input[type="text"] {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    outline: none;
+}
+
+.search-bar button {
+    padding: 0.75rem 1.5rem;
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.search-bar button:hover {
+    background-color: #0056b3;
+}
+
+/* Book grid layout */
+.book-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+/* Book card styling */
+.book-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: box-shadow 0.3s;
+    padding: 2em; /* Consistent with .card in App.css */
+}
+
+.book-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.book-card img {
+    width: 100%;
+    height: auto;
+    object-fit: cover; /* Similar to swiper-slide img in BookCards.css */
+}
+
+/* Card content layout */
+.book-card-content {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    text-align: center;
+}
+
+.book-card-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+.book-card-author {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.book-card-price {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #007bff;
+}
+
+/* Add to cart button styling */
+.add-to-cart-button {
+    padding: 0.75rem;
+    background-color: #28a745;
+    color: white;
+    border-radius: 4px;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 1rem;
+    transition: background-color 0.3s;
+    text-decoration: none;
+}
+
+.add-to-cart-button:hover {
+    background-color: #218838;
+}
+
+/* Empty state styling for no books found */
+.empty-state {
+    text-align: center;
+    margin-top: 2rem;
+    color: #666;
+    font-size: 1.2rem;
+}
+
+.empty-state h3 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: #999;
+    font-size: 1rem;
+}
