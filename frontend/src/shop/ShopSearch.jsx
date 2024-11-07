@@ -1,3 +1,4 @@
+// src/components/shop/ShopSearch.jsx
 import React from 'react';
 
 const ShopSearch = ({ searchTerm, setSearchTerm }) => {

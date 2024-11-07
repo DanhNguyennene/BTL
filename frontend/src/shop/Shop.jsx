@@ -1,5 +1,7 @@
+// src/shop/Shop.jsx
 import React, { useState, useEffect } from 'react';
-import ShopHeader from './ShopHeader';
+import ShopSearch from './ShopSearch';
+import ShopFilters from './ShopFilters';
 import PopularBooks from './PopularBooks';
 import FeaturedAuthors from './FeaturedAuthors';
 import ShopGrid from '../components/shop/ShopGrid';
@@ -44,7 +46,8 @@ const Shop = () => {
   return (
     <div className="pt-16"> {/* Add padding-top to account for fixed navbar */}
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <ShopHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        <ShopSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        <ShopFilters authors={authors} setAuthors={setAuthors} />
         
         {!searchTerm && (
           <>
