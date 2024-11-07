@@ -1,76 +1,78 @@
-// src/shop/Shop.jsx
 import React, { useState, useEffect } from 'react';
-import ShopHeader from '../components/shop/ShopHeader';
-import ShopFilters from '../components/shop/ShopFilters';
+import ShopHeader from './ShopHeader';
+import PopularBooks from './PopularBooks';
+import FeaturedAuthors from './FeaturedAuthors';
 import ShopGrid from '../components/shop/ShopGrid';
-import ShopEmptyState from '../components/shop/ShopEmptyState';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "../components/ui/sheet/Sheet";
 
 const Shop = () => {
-   const [books, setBooks] = useState([]);
-   const [loading, setLoading] = useState(true);
-   const [searchTerm, setSearchTerm] = useState('');
-   const [priceRange, setPriceRange] = useState([0, 100]);
+  const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [authors, setAuthors] = useState([]);
 
-   useEffect(() => {
-       fetchBooks();
-   }, [searchTerm, priceRange]);
+  useEffect(() => {
+    fetchBooks();
+    fetchAuthors();
+  }, [searchTerm]);
 
-   const fetchBooks = async () => {
-       setLoading(true);
-       try {
-           let url = `http://localhost:5000/api/books`;
+  const fetchBooks = async () => {
+    setLoading(true);
+    try {
+      const url = `http://localhost:5000/api/books${
+        searchTerm ? `/filter?title=${encodeURIComponent(searchTerm)}` : ''
+      }`;
+      const response = await fetch(url);
+      const data = await response.json();
+      setBooks(data);
+    } catch (error) {
+      console.error('Error fetching books:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-           // Add query parameters only if filters are applied
-           const params = [];
-           if (searchTerm) params.push(`title=${encodeURIComponent(searchTerm)}`);
-           if (priceRange && priceRange[0] !== 0 && priceRange[1] !== 100) {
-               params.push(`minPrice=${priceRange[0]}`, `maxPrice=${priceRange[1]}`);
-           }
-           // Use /filter endpoint if there are any parameters, otherwise fetch all books
-           if (params.length > 0) {
-               url += `/filter?${params.join('&')}`;
-               console.log(url);
-           }
+  const fetchAuthors = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/authors');
+      const data = await response.json();
+      setAuthors(data);
+    } catch (error) {
+      console.error('Error fetching authors:', error);
+    }
+  };
 
-           const response = await fetch(url);
-           console.log(response);
-           const data = await response.json();
-           setBooks(data);
-       } catch (error) {
-           console.error('Error fetching books:', error);
-       } finally {
-           setLoading(false);
-       }
-   };
+  return (
+    <div className="pt-16"> {/* Add padding-top to account for fixed navbar */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <ShopHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        
+        {!searchTerm && (
+          <>
+            <PopularBooks books={books.slice(0, 4)} />
+            <FeaturedAuthors authors={authors} />
+          </>
+        )}
 
-   return (
-       <div className="container mx-auto px-4 py-8">
-           <ShopHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} onFilterClick={() => {}} />
-           
-           <Sheet>
-               <SheetTrigger asChild>
-                   <button className="p-3 rounded-lg border border-gray-300 hover:bg-gray-100">
-                       Filters
-                   </button>
-               </SheetTrigger>
-               <SheetContent>
-                   <SheetHeader>
-                       <SheetTitle>Filters</SheetTitle>
-                   </SheetHeader>
-                   <ShopFilters priceRange={priceRange} setPriceRange={setPriceRange} />
-               </SheetContent>
-           </Sheet>
-
-           {loading ? (
-               <div className="text-center">Loading...</div>
-           ) : books.length > 0 ? (
-               <ShopGrid books={books} />
-           ) : (
-               <ShopEmptyState />
-           )}
-       </div>
-   );
+        {loading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        ) : books.length > 0 ? (
+          <div>
+            <h2 className="text-2xl font-bold mb-6 text-gray-800">
+              {searchTerm ? 'Search Results' : 'All Books'}
+            </h2>
+            <ShopGrid books={books} />
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <h3 className="text-xl font-medium text-gray-800 mb-2">No books found</h3>
+            <p className="text-gray-600">Try adjusting your search terms</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default Shop;
