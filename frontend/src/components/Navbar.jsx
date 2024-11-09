@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, BookOpen, Search, ShoppingCart, User } from 'lucide-react';
+import { Menu, X, BookOpen, Search, ShoppingCart, User, LogOut  } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = () => {
@@ -26,13 +26,64 @@ const Navbar = () => {
     { link: "Shop", path: isAuthenticated?`/${userInfo.username}/shop` : '/shop' },
   ];
 
-  const renderAuthenticationMenu = () => {
+  const renderAuthenticatedMenu = () => {
     if (isCustomer){
       return (
-        <>
-        </>
+        <div className='absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1'>
+          <Link
+            to={`/${userInfo.username}/customer-dashboard`}
+            onClick={() => setShowMenuUsers(false)}
+            className='block px-4 py-2 text-lg text-gray-600 hover:bg-gray-200 mx-px'
+          >
+            Dashboard
+          </Link>
+          <button
+            onClick={handleLogout}
+            className='w-full text-left px-4 py-2 text-lg text-gray-600 hover:bg-gray-200 mx-px'
+          >
+            LogOut
+          </button>
+        </div>
       )
     }
+
+
+    if (isEmployee){
+      return (
+        <div className='absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1'>
+          <Link
+            to={`/${userInfo.username}/employee-dashboard`}
+            onClick={() => setShowMenuUsers(false)}
+            className='block px-4 py-2 text-lg text-gray-600 hover:bg-gray-200 mx-px'
+          >
+            Dashboard
+          </Link>
+          <button
+            onClick={handleLogout}
+            className='w-full text-left px-4 py-2 text-lg text-gray-600 hover:bg-gray-200 mx-px'
+          >
+            LogOut
+          </button>
+        </div>
+      )
+    }
+
+    return(
+      <div className='absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1'>
+        <Link
+          to='/signin'
+          onClick={() => setShowMenuUsers(!showMenuUsers)}
+        className='block px-4 py-2 text-lg text-gray-600 hover:bg-gray-200 mx-px'>
+          Sign in 
+        </Link>
+        <Link 
+          to='/signup'
+          onClick={() => setShowMenuUsers(!showMenuUsers)}
+        className='block px-4 py-2 text-lg text-gray-600 hover:bg-gray-200 mx-px'>
+          Sign up
+        </Link>
+      </div>
+    )
   }
 
   useEffect(() => {
@@ -48,20 +99,13 @@ const Navbar = () => {
 
   return (
     <header className="fixed w-full z-50">
-      <nav
-        className={`transition-all duration-300 ${
-          isScrolled
-            ? 'bg-white shadow-lg backdrop-blur-sm bg-opacity-90'
-            : 'bg-transparent'
-        }`}
-      >
+      <nav className={`transition-all duration-300 ${
+        isScrolled ? 'bg-white shadow-lg backdrop-blur-sm bg-opacity-90' : 'bg-transparent'
+      }`}>  
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link
-              to="/"
-              className="flex items-center space-x-2 text-blue-700 hover:text-blue-500 transition-colors"
-            >
+            <Link to={isAuthenticated? `/${userInfo.username}/` : '/'} className="flex items-center space-x-2 text-blue-700 hover:text-blue-500 transition-colors">
               <BookOpen className="h-6 w-6" />
               <span className="font-bold text-xl">BookStore</span>
             </Link>
@@ -82,44 +126,27 @@ const Navbar = () => {
 
             {/* Right side icons */}
             <div className="hidden md:flex items-center space-x-6">
-              {/* <button className="text-gray-600 hover:text-blue-600 transition-colors">
-                <Search className="h-5 w-5" />
-              </button>
-              <button className="text-gray-600 hover:text-blue-600 transition-colors">
-                <ShoppingCart className="h-5 w-5" />
-              </button> */}
+              {isCustomer && (
+                <Link 
+                  to={`/${userInfo?.username}/cart`}
+                  className="text-gray-600 hover:text-blue-600 transition-colors"
+                >
+                  <ShoppingCart className="h-5 w-5" />
+                </Link>
+              )}
+              
               <div className='relative'>
-              <button 
-                className="text-gray-600 hover:text-blue-600 transition-colors"
-                onClick={() => setShowMenuUsers(!showMenuUsers)}  
-              >
-                <User className="h-5 w-5" />
-              </button>
-              
-              {showMenuUsers && (
-
-                  <div className='absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1'>
-                    <Link
-                      to='/signin'
-                      onClick={() => setShowMenuUsers(!showMenuUsers)}
-                    className='block px-4 py-2 text-lg text-gray-600 hover:bg-gray-200 mx-px'>
-                      Sign in 
-                    </Link>
-                    <Link 
-                      to='/signup'
-                      onClick={() => setShowMenuUsers(!showMenuUsers)}
-                    className='block px-4 py-2 text-lg text-gray-600 hover:bg-gray-200 mx-px'>
-                      Sign up
-                    </Link>
-                    <Link 
-                      link='/admin/signin'
-                      className='block px-4 py-2 text-lg text-gray-600 hover:bg-gray-200 mx-px'
-                      onClick={() => setShowMenuUsers(!showMenuUsers)}>
-                      Admin Sign in 
-                    </Link>
-                  </div>
-                )}
-              
+                <button 
+                  className="text-gray-600 hover:text-blue-600 transition-colors flex items-center space-x-2"
+                  onClick={() => setShowMenuUsers(!showMenuUsers)}
+                >
+                  <User className="h-5 w-5" />
+                  {isAuthenticated && (
+                    <span className="text-sm font-medium">{userInfo?.username}</span>
+                  )}
+                </button>
+                
+                {showMenuUsers && renderAuthenticatedMenu()}
               </div>
             </div>
 
@@ -129,24 +156,16 @@ const Navbar = () => {
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="text-gray-600 hover:text-blue-600 transition-colors"
               >
-                {isMenuOpen ? (
-                  <X className="h-6 w-6" />
-                ) : (
-                  <Menu className="h-6 w-6" />
-                )}
+                {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
               </button>
             </div>
           </div>
         </div>
 
         {/* Mobile menu */}
-        <div
-          className={`md:hidden transition-all duration-300 ease-in-out ${
-            isMenuOpen
-              ? 'max-h-screen opacity-100'
-              : 'max-h-0 opacity-0 pointer-events-none'
-          }`}
-        >
+        <div className={`md:hidden transition-all duration-300 ease-in-out ${
+          isMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0 pointer-events-none'
+        }`}>
           <div className="px-2 pt-2 pb-3 space-y-1 bg-white shadow-lg">
             {navItems.map(({ link, path }) => (
               <Link
@@ -159,15 +178,40 @@ const Navbar = () => {
               </Link>
             ))}
             <div className="flex items-center space-x-4 px-3 py-2">
-              <button className="text-gray-600 hover:text-blue-600 transition-colors">
-                <Search className="h-5 w-5" />
-              </button>
-              <button className="text-gray-600 hover:text-blue-600 transition-colors">
-                <ShoppingCart className="h-5 w-5" />
-              </button>
-              <button className="text-gray-600 hover:text-blue-600 transition-colors">
-                <User className="h-5 w-5" />
-              </button>
+              {isCustomer && (
+                <Link 
+                  to={`/${userInfo?.username}/cart`}
+                  className="text-gray-600 hover:text-blue-600 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <ShoppingCart className="h-5 w-5" />
+                </Link>
+              )}
+              {isAuthenticated ? (  
+                <>
+                  <Link 
+                    to={`/${userInfo?.username}/${isCustomer ? 'customer' : 'employee'}-dashboard`}
+                    className="text-gray-600 hover:text-blue-600 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <User className="h-5 w-5" />
+                  </Link>
+                  <button 
+                    onClick={handleLogout}
+                    className="text-gray-600 hover:text-blue-600 transition-colors"
+                  >
+                    <LogOut className="h-5 w-5" />
+                  </button>
+                </>
+              ) : (
+                <Link 
+                  to="/signin"
+                  className="text-gray-600 hover:text-blue-600 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <User className="h-5 w-5" />
+                </Link>
+              )}
             </div>
           </div>
         </div>

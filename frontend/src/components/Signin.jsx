@@ -3,7 +3,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck, faTimes, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
-
+import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext'
 
 
@@ -53,15 +53,11 @@ const Signin = () => {
     e.preventDefault();
     try{
       const result = await login(username, pwd);
+
       console.log("Inside handleSubmit, result: ", result);
       if (result.success){
-        // const user = result.user;
-        // if (user.user_type === "employee"){
-        //   navigate('/employee-dashboard')
-        // }else{
-
-        //   navigate('/customer-dashboard')
-        // }
+        console.log('Token after login:', localStorage.getItem('token')); 
+        console.log('Auth header:', api.defaults.headers.common['Authorization']);
         navigate(comeTo, { replace: true });
       }
     }catch(error){
@@ -69,8 +65,6 @@ const Signin = () => {
       errRef.current?.focus();
     }
   }
-
-
 
   return (
     <div className='min-h-screen flex justify-center bg-gray-200 py-12 px-4 sm:px-6 lg:px-8'>

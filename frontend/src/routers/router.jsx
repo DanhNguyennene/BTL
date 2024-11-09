@@ -13,10 +13,16 @@ import { ProtectedRoute } from "../components/ProtectedRoute";
 import EmployeeDashboard from "../components/EmployeeDashboard";
 import CustomerDashboard from "../components/CustomerDashboard";
 import { useAuth } from "../contexts/AuthContext";
+import { Outlet } from "react-router-dom";
+
 
 const AuthenticatedLayout = ({children}) => {
   const{userInfo} = useAuth();
-  return children;
+  return (
+    <div>
+      <Outlet/>
+    </div>
+  );
 } 
 
 const router = createBrowserRouter([
@@ -55,7 +61,7 @@ const router = createBrowserRouter([
         element:<Signin/>
       },
       {
-        path: '/:username',
+        path: '/:username/',
         element: <AuthenticatedLayout/>,
         children:[
           {

@@ -7,6 +7,7 @@ import './BookCards.css';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import axios from 'axios';
+import api from '../api/axios';
 
 import { Pagination } from 'swiper/modules';
 import { Link } from 'react-router-dom';
@@ -20,7 +21,7 @@ const useBooks= () => {
   const fetchBooks = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/books');
+      const response = await api.get('/api/books');
       console.log(response)
       if (Array.isArray(response.data)) {
         setBooks(response.data);
