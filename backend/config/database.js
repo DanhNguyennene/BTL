@@ -5,6 +5,9 @@ const pool = mysql.createPool({
     user: 'root',
     password: process.env.DB_PASSWORD,
     database: 'ebookstoredb',
+    waitForConnections:true,
+    connectionLimit:10,
+    queueLimit:0
 });
 
 module.exports = pool;

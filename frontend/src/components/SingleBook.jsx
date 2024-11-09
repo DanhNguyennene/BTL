@@ -1,17 +1,22 @@
 import React from 'react'
 import { useLoaderData } from 'react-router-dom'
 import { FiDollarSign, FiBook, FiUser, FiTag } from 'react-icons/fi';
+import { FaBook } from "react-icons/fa6";
 
 
 const SingleBook = () => {
+  console.log(useLoaderData())
   const {
-      bookTitle,
       authorName,
+      authorID,
+      bookID,
+      genreID, 
+      genreName, 
       imageURL,
-      category,
-      bookDescription,
-      bookPDFURL,
-      price
+      price,
+      pu_id,
+      publisherName,
+      bookTitle
   } = useLoaderData();
 
   return (
@@ -43,7 +48,7 @@ const SingleBook = () => {
               <FiTag className="w-5 h-5 text-blue-600" />
               <span className="font-medium">Category:</span>
               <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                  {category}
+                  {genreName}
               </span>
             </div>
 
@@ -55,15 +60,17 @@ const SingleBook = () => {
             </div>
 
             <div className='flex item-center space-x-3 text-gray-700'>
-              <FiBook className="w-5 h-5 text-blue-600" />
-              <a href={bookPDFURL} target='_blank' rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 transition-colors duration-300">Read on GoodReads</a>
+              <FaBook  className="w-5 h-5 text-blue-600" />
+              <span className="font-medium">Publisher:</span>
+              <span className="text-gray-900">{publisherName}</span>
             </div>
+            
           </div>
 
           <div className='space-y-3 font-semibold text-gray-500'>
             <h2 className="text-2xl font-semibold text-gray-900">About this book</h2>
             <p className="text-gray-600 leading-relaxed">
-                {bookDescription}
+                {"bookDescription"}
             </p>
           </div>
 
