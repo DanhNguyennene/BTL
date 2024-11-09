@@ -19,10 +19,11 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
     (response) => response,
-    (error) =>{
+    async (error) =>{
         if(error.response?.status===401){
             localStorage.removeItem('token')
             localStorage.removeItem('user')
+            delete api.defaults.headers.common['Authorization'];
             window.location.href='/signin'
         }
         return Promise.reject(error)

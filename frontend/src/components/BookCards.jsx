@@ -7,6 +7,7 @@ import './BookCards.css';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import api from '../api/axios';
+
 import { Pagination } from 'swiper/modules';
 import { Link } from 'react-router-dom';
 
@@ -20,6 +21,7 @@ const useBooks= () => {
     try {
       setLoading(true);
       const response = await api.get('/api/books');
+
       if (Array.isArray(response.data)) {
         setBooks(response.data);
       } else {
@@ -67,8 +69,7 @@ const BookCards = ({headline}) => {
       </div>
     );
   }
-  console.log(typeof(books));
-  console.log(books)
+
   return (
     <div className='my-16 px-4 lg:px-24'>
         <h2 className='text-5xl text-center font-bold text-gray-900 my-5 transition-colors duration-300 hover:text-blue-600'>
