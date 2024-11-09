@@ -1,19 +1,39 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X, BookOpen, Search, ShoppingCart, User } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [showMenuUsers, setShowMenuUsers] = useState(false);
+
+  const {userInfo, isAuthenticated, logout, isEmployee, isCustomer} = useAuth();
+  const navigate = useNavigate();
+
+
+  const handleLogout  = () => {
+    logout();
+    navigate('/signin');
+    setShowMenuUsers(false);
+  };
+
+
 
   // Nav Items
   const navItems = [
-    { link: "Home", path: '/' },
-    { link: "About", path: "/about" },
-    { link: "Shop", path: "/shop" },
-    { link: "Blog", path: "/blog" },
-    { link: "Sell Your Book", path: "/admin/dashboard" }
+    { link: "Home", path: isAuthenticated? `/${userInfo.username}/` : '/' },
+    { link: "Shop", path: isAuthenticated?`/${userInfo.username}/shop` : '/shop' },
   ];
+
+  const renderAuthenticationMenu = () => {
+    if (isCustomer){
+      return (
+        <>
+        </>
+      )
+    }
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -23,6 +43,8 @@ const Navbar = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  
 
   return (
     <header className="fixed w-full z-50">
@@ -60,15 +82,45 @@ const Navbar = () => {
 
             {/* Right side icons */}
             <div className="hidden md:flex items-center space-x-6">
-              <button className="text-gray-600 hover:text-blue-600 transition-colors">
+              {/* <button className="text-gray-600 hover:text-blue-600 transition-colors">
                 <Search className="h-5 w-5" />
               </button>
               <button className="text-gray-600 hover:text-blue-600 transition-colors">
                 <ShoppingCart className="h-5 w-5" />
-              </button>
-              <button className="text-gray-600 hover:text-blue-600 transition-colors">
+              </button> */}
+              <div className='relative'>
+              <button 
+                className="text-gray-600 hover:text-blue-600 transition-colors"
+                onClick={() => setShowMenuUsers(!showMenuUsers)}  
+              >
                 <User className="h-5 w-5" />
               </button>
+              
+              {showMenuUsers && (
+
+                  <div className='absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1'>
+                    <Link
+                      to='/signin'
+                      onClick={() => setShowMenuUsers(!showMenuUsers)}
+                    className='block px-4 py-2 text-lg text-gray-600 hover:bg-gray-200 mx-px'>
+                      Sign in 
+                    </Link>
+                    <Link 
+                      to='/signup'
+                      onClick={() => setShowMenuUsers(!showMenuUsers)}
+                    className='block px-4 py-2 text-lg text-gray-600 hover:bg-gray-200 mx-px'>
+                      Sign up
+                    </Link>
+                    <Link 
+                      link='/admin/signin'
+                      className='block px-4 py-2 text-lg text-gray-600 hover:bg-gray-200 mx-px'
+                      onClick={() => setShowMenuUsers(!showMenuUsers)}>
+                      Admin Sign in 
+                    </Link>
+                  </div>
+                )}
+              
+              </div>
             </div>
 
             {/* Mobile menu button */}
