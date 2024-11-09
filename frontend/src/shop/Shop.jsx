@@ -81,12 +81,6 @@ const Shop = () => {
             setSearchType={setSearchType}
           />
 
-          {!searchTerm && !selectedAuthor && (
-            <>
-              <PopularBooks books={books.slice(0, 8)} />
-              <FeaturedAuthors authors={authors} />
-            </>
-          )}
 
           {loading ? (
             <div className="flex items-center justify-center h-64">
@@ -97,6 +91,8 @@ const Shop = () => {
               <h2 className="text-2xl font-bold mb-6 text-gray-800">
                 {searchTerm || selectedAuthor ? 'Search Results' : 'All Books'}
               </h2>
+
+              {console.log(books)}
               <ShopGrid books={books} />
             </div>
           ) : (

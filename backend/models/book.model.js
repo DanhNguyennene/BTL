@@ -3,7 +3,24 @@ const connection = require('../config/database');
 module.exports = {
     getAllBooks: async () => {
         try {
-            const [rows] = await connection.query('SELECT * FROM book');
+            const [rows] = await connection.query(`
+                SELECT
+                    b.*,
+                    a.name as authorName,
+                    p.pu_name as publisherName,
+                    g.gen_id as genreID,
+                    g.genre_name as genreName
+                FROM 
+                    BOOK b
+                LEFT JOIN 
+                    AUTHOR a ON b.author_id = a.author_id
+                LEFT JOIN 
+                    PUBLISHER p ON b.pu_id = p.pu_id
+                LEFT JOIN 
+                    BOOK_GENRE bg ON b.book_id = bg.book_id
+                LEFT JOIN 
+                    GENRE g ON bg.gen_id = g.gen_id;
+            `)
             return rows;
         } catch (error) {
             console.log(error);
