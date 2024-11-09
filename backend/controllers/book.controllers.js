@@ -1,5 +1,5 @@
 const { getAllBooks, getBookByID, createABook,
-    updateABook, deleteABook, deleteAllofBooks, getBookTitles, createUserCustomer, validUser
+    updateABook, deleteABook, deleteAllofBooks, getBookTitles, createUserCustomer, validUser, filterBook
  } = require('../models/book.model');
 const jwt = require('jsonwebtoken');
 const connection = require('../config/database');
@@ -14,7 +14,23 @@ const getBooks = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-
+const filterBooks = async (req, res) => {
+    try {
+        const filters = {
+            title: req.query.title,
+            minPrice: req.query.minPrice,
+            maxPrice: req.query.maxPrice,
+            author_id: req.query.author_id,
+            author_name: req.query.author_name,
+            pu_id: req.query.pu_id
+        };
+        const books = await filterBook(filters);
+        res.json(books);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: 'Database query error' });
+    }
+};
 const searchBookTitles = async (req, res) => {
     try{
         const {q} = req.query;
@@ -199,6 +215,7 @@ module.exports = {
     createBook,
     updateBook,
     deleteBook,
+    filterBooks,
     searchBookTitles,
     signUp,
     signIn

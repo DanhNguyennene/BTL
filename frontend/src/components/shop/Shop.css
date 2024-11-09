@@ -1,0 +1,49 @@
+/* Shop-specific styling for larger book grid and cards */
+.shop-page .book-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Larger cards */
+    gap: 2rem; /* Increase spacing between cards */
+}
+
+.shop-page .book-card {
+    padding: 3rem; /* Increase padding for larger cards */
+    border: 2px solid #ddd; /* Thicker border for emphasis */
+    border-radius: 12px; /* More rounded corners */
+    transition: box-shadow 0.3s, transform 0.3s; /* Add smooth scaling effect */
+}
+
+.shop-page .book-card:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    transform: translateY(-5px); /* Add a slight lift on hover */
+}
+
+.shop-page .book-card img {
+    height: 400px; /* Increase height for larger cards */
+    object-fit: cover;
+}
+
+/* Shop page-specific book card content */
+.shop-page .book-card-content {
+    padding: 1.5rem;
+}
+
+.shop-page .book-card-title {
+    font-size: 1.5rem; /* Increase font size for book titles */
+    margin-bottom: 0.5rem;
+}
+
+.shop-page .book-card-price {
+    font-size: 1.25rem; /* Increase font size for book price */
+    color: #007bff;
+}
+
+/* Larger add to cart button for Shop page */
+.shop-page .add-to-cart-button {
+    padding: 1rem;
+    font-size: 1.1rem;
+    margin-top: 1.5rem;
+    background-color: #28a745;
+}
+
+.shop-page .add-to-cart-button:hover {
+    background-color: #218838;
+}

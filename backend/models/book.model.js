@@ -37,6 +37,39 @@ module.exports = {
             console.log(error);
         }
     },
+    filterBook: async ({ title, minPrice, maxPrice, author_id, author_name, pu_id }) => {
+        try {
+            let query = 'SELECT * FROM book WHERE 1=1';
+            const queryParams = [];
+
+            if (title) {
+                query += ' AND title LIKE ?';
+                queryParams.push(`%${title}%`);
+            }
+            if (minPrice !== undefined && maxPrice !== undefined) {
+                query += ' AND price BETWEEN ? AND ?';
+                queryParams.push(minPrice, maxPrice);
+            }
+            if (author_id) {
+                query += ' AND author_id = ?';
+                queryParams.push(author_id);
+            }
+            if (author_name) {
+                query += ' AND author_id IN (SELECT author_id FROM author WHERE name LIKE ?)';
+                queryParams.push(`%${author_name}%`);
+            }
+            if (pu_id) {
+                query += ' AND pu_id = ?';
+                queryParams.push(pu_id);
+            }
+
+            const [rows] = await connection.query(query, queryParams);
+            return rows;
+        } catch (error) {
+            console.log(error);
+            throw error;
+        }
+    },
     getBookByID: async (book_id) => {
         try {
             const [rows] = await connection.query(`
@@ -65,6 +98,7 @@ module.exports = {
             throw error;
         }
     },
+
     createABook: async (title, price, author_id, pu_id) => {
         try {
             const [rows] = await connection.query('INSERT INTO book (title, price, author_id, pu_id) VALUE(?, ?, ?, ?)',
