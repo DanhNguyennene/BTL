@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "axios": "^1.7.7",
     "frontend": "file:",
     "localforage": "^1.10.0",
     "lucide-react": "^0.453.0",

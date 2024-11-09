@@ -9,20 +9,38 @@ const Shop = () => {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchType, setSearchType] = useState('title'); // New state for search type
   const [authors, setAuthors] = useState([]);
   const [selectedAuthor, setSelectedAuthor] = useState('');
 
   useEffect(() => {
     fetchBooks();
     fetchAuthors();
-  }, [searchTerm, selectedAuthor]);
+  }, [searchTerm, searchType, selectedAuthor]);
 
   const fetchBooks = async () => {
     setLoading(true);
     try {
-      const url = `http://localhost:5000/api/books${
-        searchTerm ? `/filter?title=${encodeURIComponent(searchTerm)}` : ''
-      }${selectedAuthor ? `&author=${encodeURIComponent(selectedAuthor)}` : ''}`;
+      // Construct the query parameters based on searchType and selectedAuthor
+      let url = `http://localhost:5000/api/books/filter`;
+      const queryParams = [];
+
+      if (searchTerm) {
+        if (searchType === 'title') {
+          queryParams.push(`title=${encodeURIComponent(searchTerm)}`);
+        } else if (searchType === 'author') {
+          queryParams.push(`author_name=${encodeURIComponent(searchTerm)}`);
+        }
+      }
+
+      if (selectedAuthor) {
+        queryParams.push(`author_name=${encodeURIComponent(selectedAuthor)}`);
+      }
+
+      if (queryParams.length > 0) {
+        url += `?${queryParams.join('&')}`;
+      }
+      console.log(url);
       const response = await fetch(url);
       const data = await response.json();
       setBooks(data);
@@ -55,11 +73,17 @@ const Shop = () => {
 
         {/* Main content on the right */}
         <div className="w-3/4">
-          <ShopSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+          {/* Search Component */}
+          <ShopSearch 
+            searchTerm={searchTerm} 
+            setSearchTerm={setSearchTerm} 
+            searchType={searchType}
+            setSearchType={setSearchType}
+          />
 
-          {!searchTerm && (
+          {!searchTerm && !selectedAuthor && (
             <>
-              <PopularBooks books={books.slice(0, 4)} />
+              <PopularBooks books={books.slice(0, 8)} />
               <FeaturedAuthors authors={authors} />
             </>
           )}
