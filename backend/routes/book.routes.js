@@ -18,6 +18,4 @@ router.post('/', createBook);
 router.patch('/:book_id', updateBook);
 router.delete('/:book_id', deleteBook);
 router.delete('/', deleteAllBooks); 
-
-
 module.exports = router;
