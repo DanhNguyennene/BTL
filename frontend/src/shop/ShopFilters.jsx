@@ -1,14 +1,14 @@
-// src/components/shop/ShopFilters.jsx
 import React from 'react';
 
-const ShopFilters = ({ authors, setAuthors }) => {
-    // Here you can add other filter options as needed (e.g., genre, price range).
+const ShopFilters = ({ authors, setSelectedAuthor }) => {
     return (
         <div className="shop-filters mb-4">
-            <h3 className="text-lg font-semibold mb-2">Filters</h3>
-            {/* Example: Filter by Author */}
+            <h3 className="text-lg font-semibold mb-4">Filters</h3>
+            
+            {/* Filter by Author */}
+            <label className="block text-gray-700 mb-2">Author</label>
             <select
-                onChange={(e) => setAuthors(e.target.value)}
+                onChange={(e) => setSelectedAuthor(e.target.value)}
                 className="w-full p-2 border rounded mb-4"
             >
                 <option value="">All Authors</option>
@@ -18,7 +18,6 @@ const ShopFilters = ({ authors, setAuthors }) => {
                     </option>
                 ))}
             </select>
-            {/* Additional filters (e.g., price range) can be added here */}
         </div>
     );
 };
