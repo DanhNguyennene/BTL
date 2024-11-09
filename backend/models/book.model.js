@@ -9,7 +9,7 @@ module.exports = {
             console.log(error);
         }
     },
-    filterBook: async ({ title, minPrice, maxPrice, author_id, pu_id }) => {
+    filterBook: async ({ title, minPrice, maxPrice, author_id, author_name, pu_id }) => {
         try {
             let query = 'SELECT * FROM book WHERE 1=1';
             const queryParams = [];
@@ -26,6 +26,10 @@ module.exports = {
                 query += ' AND author_id = ?';
                 queryParams.push(author_id);
             }
+            if (author_name) {
+                query += ' AND author_id IN (SELECT author_id FROM author WHERE name LIKE ?)';
+                queryParams.push(`%${author_name}%`);
+            }
             if (pu_id) {
                 query += ' AND pu_id = ?';
                 queryParams.push(pu_id);
@@ -40,13 +44,33 @@ module.exports = {
     },
     getBookByID: async (book_id) => {
         try {
-            const [rows] = await connection.query('SELECT * FROM book WHERE book_id = ?', [book_id]);
+            const [rows] = await connection.query(`
+                SELECT
+                    b.*,
+                    a.name AS authorName,
+                    p.pu_name AS publisherName,
+                    g.gen_id AS genreID,
+                    g.genre_name AS genreName
+                FROM 
+                    BOOK b
+                LEFT JOIN 
+                    AUTHOR a ON b.author_id = a.author_id
+                LEFT JOIN 
+                    PUBLISHER p ON b.pu_id = p.pu_id
+                LEFT JOIN 
+                    BOOK_GENRE bg ON b.book_id = bg.book_id
+                LEFT JOIN 
+                    GENRE g ON bg.gen_id = g.gen_id
+                WHERE 
+                    b.book_id = ?
+            `, [book_id])
             return rows.length ? rows[0] : null;
         } catch (error) {
             console.log(error);
             throw error;
         }
     },
+
     createABook: async (title, price, author_id, pu_id) => {
         try {
             const [rows] = await connection.query('INSERT INTO book (title, price, author_id, pu_id) VALUE(?, ?, ?, ?)',

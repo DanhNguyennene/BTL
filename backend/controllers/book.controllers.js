@@ -20,6 +20,7 @@ const filterBooks = async (req, res) => {
             minPrice: req.query.minPrice,
             maxPrice: req.query.maxPrice,
             author_id: req.query.author_id,
+            author_name: req.query.author_name,
             pu_id: req.query.pu_id
         };
         const books = await filterBook(filters);
