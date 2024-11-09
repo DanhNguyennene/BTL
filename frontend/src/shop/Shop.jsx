@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
 import ShopSearch from './ShopSearch';
 import ShopFilters from './ShopFilters';
@@ -13,29 +12,6 @@ const Shop = () => {
   const [searchType, setSearchType] = useState('title'); // New state for search type
   const [authors, setAuthors] = useState([]);
   const [selectedAuthor, setSelectedAuthor] = useState('');
-=======
-import React, {useState, useCallback} from 'react'
-import SearchBar from '../components/SearchBar'
-import BookLists from '../components/BookLists'
-
-
-const Shop = () => {
-
-  const {search, setSearch} = useState('')
-
-  const handleSearch = useCallback((searchItem) => {
-    setSearch(searchItem);
-  }, []);
-
-  
-
-  return (
-    <>
-    <div>dasd</div>
-    </>
-  )
-}
->>>>>>> f28f1963aa2a6b1b08b7592255d05cd78057a477
 
   useEffect(() => {
     fetchBooks();
