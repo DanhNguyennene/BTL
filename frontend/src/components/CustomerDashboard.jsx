@@ -6,8 +6,7 @@ const CustomerDashboard = () => {
   
   return (
     <div>
-
-      Hello
+      <h1>Welcome User {userInfo.username}</h1>
     </div>
   )
 }

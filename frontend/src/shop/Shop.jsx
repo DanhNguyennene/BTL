@@ -53,7 +53,7 @@ const Shop = () => {
 
   const fetchAuthors = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/authors');
+      const response = await fetch('http://localhost:5000/api/books/authors');
       const data = await response.json();
       setAuthors(data);
     } catch (error) {

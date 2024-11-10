@@ -85,6 +85,7 @@ const BookCards = ({ filteredBooks, headline }) => {
           <SwiperSlide key={book.book_id}>
             <Link to={`/api/books/${book.book_id}`} className="group">
               <div className='relative overflow-hidden rounded-lg shadow-lg'>
+              {/* image url đâu ra */}
                 <img src={book.imageURL} alt={book.title} className="w-full object-cover" />
                 <div className='mt-4'>
                   <p className='text-gray-600'>Author: {book.authorName}</p>

@@ -206,7 +206,139 @@ const signIn = async (req, res) => {
     }
 }
 
+const getAuthors = async (req, res) => {
+    try {
+        const [rows] = await connection.query(
+            `SELECT author_id, name FROM author`
+        );
+        res.json(rows);
+    } catch (error) {
+        console.error('Error in getAuthors:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+// TODO:
+const getOrders = async (req, res) => {
+    try {
+        const [rows] = await connection.query(
+            `SELECT * FROM order`
+        );
+        res.json(rows);
+    } catch (error) {
+        console.error('Error in getOrders:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+const getOrder = async (req, res) => {
+    try {
+        const { username } = req.params;
+        const [rows] = await connection.query(
+            `SELECT * FROM order WHERE username = ?`,
+            [username]
+        );
+        res.json(rows);
+    } catch (error) {
+        console.error('Error in getOrder:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
 
+const getPublisherOrders = async (req, res) => {
+    try {
+        const [rows] = await connection.query(
+            `SELECT * FROM order_publisher`
+        );
+        res.json(rows);
+    } catch (error) {
+        console.error('Error in getPublisherOrders:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+
+const createAuthor = async (req, res) => {
+    try {
+        const { name, dob, biography } = req.body;
+        // if some of them is null, it is okay
+        const [result] = await connection.query(
+            `INSERT INTO author (name, dob, biography) VALUES (?, ?, ?)`,
+            [name, dob, biography]
+        );
+        res.status(201).json({ author_id: result.insertId, name });
+    } catch (error) {
+        console.error('Error in createAuthor:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+
+const createGenre = async (req, res) => {
+    try {
+        const { name, description } = req.body;
+        const [result] = await connection.query(
+            `INSERT INTO genre (genre_name, description) VALUES (?, ?)`,
+            [name, description]
+        );
+        res.status(201).json({ genre_id: result.insertId, name });
+    } catch (error) {
+        console.error('Error in createGenre:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+
+const createPublisher = async (req, res) => {
+    try {
+        const { pu_name, pu_phone_number, pu_address } = req.body;
+        const [result] = await connection.query(
+            `INSERT INTO publisher (pu_name, pu_phone_number, pu_address) VALUES (?, ?, ?)`,
+            [pu_name, pu_phone_number, pu_address]
+        );
+        res.status(201).json({ pu_id: result.insertId, name });
+    } catch (error) {
+        console.error('Error in createPublisher:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+
+const createBookGenre = async (req, res) => {
+    try {
+        const { book_id, genre_id } = req.body;
+        const [result] = await connection.query(
+            `INSERT INTO book_genre (book_id, genre_id) VALUES (?, ?)`,
+            [book_id, genre_id]
+        );
+        res.status(201).json({ book_id, genre_id });
+    } catch (error) {
+        console.error('Error in createBookGenre:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+
+const createOrder = async (req, res) => {
+    try {
+        const { order_time, order_status, username } = req.body;
+        const [result] = await connection.query(
+            `INSERT INTO order (order_time, order_status, username) VALUES (?, ?, ?)`,
+            [order_time, order_status, username]
+        );
+        res.status(201).json({ order_id: result.insertId, order_time, order_status, username });    
+    } catch (error) {
+        console.error('Error in createOrder:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+
+const createOrderPublisher = async (req, res) => {
+    try {
+        const { pu_order_status, pu_order_time, username, pu_id } = req.body;
+        const [result] = await connection.query(
+            `INSERT INTO order_publisher (pu_order_status, pu_order_time, username, pu_id) VALUES (?, ?, ?, ?)`,
+            [pu_order_status, pu_order_time, username, pu_id]
+        );
+        res.status(201).json({ pu_order_id: result.insertId, pu_order_status, pu_order_time, username, pu_id });
+    } catch (error) {
+        console.error('Error in createOrderItem:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
 
 module.exports = {
     getBooks,
@@ -217,6 +349,17 @@ module.exports = {
     deleteBook,
     filterBooks,
     searchBookTitles,
+    getAuthors,
     signUp,
-    signIn
+    signIn,
+    //TODO:
+    getOrders,
+    getPublisherOrders,
+    createAuthor,
+    createGenre,
+    createPublisher,
+    createBookGenre,
+    createOrder,
+    createOrderPublisher,
+    getOrder,
 };
