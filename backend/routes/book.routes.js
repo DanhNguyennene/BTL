@@ -61,9 +61,11 @@ router.post('/book_genre', createBookGenre);
 // hỗ trợ cho việc tạo book mới (POST /)
 router.post('/order', createOrder);
 // dùng để user tạo order mới
+// sẽ update cho order_book table vì mỗi order sẽ có nhiều sách
 // nút Purchase
 router.post('/order_publisher', createOrderPublisher);
 // dùng để employee tạo order đến publisher
+// sẽ update cho order_publisher_book table vì mỗi order sẽ có nhiều sách
 // employee dashboard
 
 router.patch('/:book_id', updateBook);

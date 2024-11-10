@@ -1,6 +1,6 @@
 const { getAllBooks, getBookByID, createABook,
     updateABook, deleteABook, deleteAllofBooks, getBookTitles, createUserCustomer, validUser, filterBook
- } = require('../models/book.model');
+} = require('../models/book.model');
 const jwt = require('jsonwebtoken');
 const connection = require('../config/database');
 
@@ -32,15 +32,15 @@ const filterBooks = async (req, res) => {
     }
 };
 const searchBookTitles = async (req, res) => {
-    try{
-        const {q} = req.query;
-        if (!q){
+    try {
+        const { q } = req.query;
+        if (!q) {
             return res.status(400).json({ message: 'Query parameter "q" is required.' });
 
         }
         const titles = await getBookTitles(q);
         res.json(titles);
-    }catch(error){
+    } catch (error) {
         console.error(`Error in searchBookTitles: ${error}`);
         res.status(500).json({ message: error.message });
     }
@@ -62,9 +62,17 @@ const getBook = async (req, res) => {
 
 const createBook = async (req, res) => {
     try {
-        const { title, price, author_id, pu_id } = req.body;
-        const result = await createABook(title, price, author_id, pu_id);
-        res.status(201).json(result);
+        // title, price, author_id, pu_id, imageURL, as well as [genre_id], so we need to update book_genre table
+        const { title, price, author_id, pu_id, imageURL, genre_ids } = req.body;
+        const newBook = await createABook(title, price, author_id, pu_id, imageURL);
+        // update book_genre table
+        for (let i = 0; i < genre_ids.length; i++) {
+            await connection.query(
+                `INSERT INTO book_genre (book_id, genre_id) VALUES (?, ?)`,
+                [newBook.book_id, genre_ids[i]]
+            );
+        }
+        res.status(201).json(newBook);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -87,7 +95,7 @@ const deleteBook = async (req, res) => {
     try {
         const book_id = req.params.book_id;
         const result = await deleteABook(book_id);
-        if (!result){
+        if (!result) {
             return res.status(404).json({ message: 'Book not found' });
         }
         res.status(200).json({ message: 'Book deleted successfully' });
@@ -105,19 +113,19 @@ const deleteAllBooks = async (req, res) => {
 };
 
 const signUp = async (req, res) => {
-    try{
+    try {
         const userData = {
-            username, 
-            name, 
-            phone_number, 
-            email, 
-            password, 
-            address, 
+            username,
+            name,
+            phone_number,
+            email,
+            password,
+            address,
             bank_acc
         } = req.body;
         console.log("Inside signup: ", username, name, phone_number, email, password, address, bank_acc)
         if (!username || !name || !phone_number || !email || !password || !address || !bank_acc) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 success: false,
                 message: 'All fields are required',
                 required: ['username', 'name', 'phone_number', 'email', 'password', 'address', 'bank_acc']
@@ -125,7 +133,7 @@ const signUp = async (req, res) => {
         }
 
 
-        const newUser = await createUserCustomer(userData); 
+        const newUser = await createUserCustomer(userData);
         res.status(201).json(
             {
                 message: "User created Successfully!",
@@ -136,11 +144,11 @@ const signUp = async (req, res) => {
                     phone_number: newUser.phone_number,
                     address: newUser.address
                 },
-                success:true
+                success: true
             }
         )
 
-    }catch(error){
+    } catch (error) {
         console.error("Signup error: ", error)
         if (error.message === "Username already exists!") {
             return res.status(409).json({
@@ -153,12 +161,12 @@ const signUp = async (req, res) => {
             message: 'An error occurred during registration',
             error: error.message
         });
-    }   
+    }
 }
 
 const signIn = async (req, res) => {
-    try{
-        const {username, password} = req.body;
+    try {
+        const { username, password } = req.body;
         if (!username || !password) {
             return res.status(400).json({
                 success: false,
@@ -186,9 +194,9 @@ const signIn = async (req, res) => {
         );
 
         res.json({
-            success:true,
+            success: true,
             token,
-            user:{  
+            user: {
                 username: user.username,
                 name: user.name,
                 email: user.email,
@@ -196,7 +204,7 @@ const signIn = async (req, res) => {
                 user_type: user.user_type
             }
         })
-    }catch(error){
+    } catch (error) {
         console.error('SignIn Error:', error);
         res.status(500).json({
             success: false,
@@ -223,6 +231,14 @@ const getOrders = async (req, res) => {
         const [rows] = await connection.query(
             `SELECT * FROM order`
         );
+        // join with order_book table to get books in each order
+        for (let i = 0; i < rows.length; i++) {
+            const [books] = await connection.query(
+                `SELECT book_id, quantity FROM order_book WHERE order_id = ?`,
+                [rows[i].order_id]
+            );
+            rows[i].books = books;
+        }
         res.json(rows);
     } catch (error) {
         console.error('Error in getOrders:', error);
@@ -236,6 +252,14 @@ const getOrder = async (req, res) => {
             `SELECT * FROM order WHERE username = ?`,
             [username]
         );
+        // join with order_book table to get books in each order
+        for (let i = 0; i < rows.length; i++) {
+            const [books] = await connection.query(
+                `SELECT book_id, quantity FROM order_book WHERE order_id = ?`,
+                [rows[i].order_id]
+            );
+            rows[i].books = books;
+        }
         res.json(rows);
     } catch (error) {
         console.error('Error in getOrder:', error);
@@ -248,6 +272,14 @@ const getPublisherOrders = async (req, res) => {
         const [rows] = await connection.query(
             `SELECT * FROM order_publisher`
         );
+        // join with order_publisher_book table to get books in each order
+        for (let i = 0; i < rows.length; i++) {
+            const [books] = await connection.query(
+                `SELECT book_id, quantity FROM order_publisher_book WHERE pu_order_id = ?`,
+                [rows[i].pu_order_id]
+            );
+            rows[i].books = books;
+        }
         res.json(rows);
     } catch (error) {
         console.error('Error in getPublisherOrders:', error);
@@ -314,12 +346,23 @@ const createBookGenre = async (req, res) => {
 
 const createOrder = async (req, res) => {
     try {
-        const { order_time, order_status, username } = req.body;
+        const { order_time, order_status, username, books } = req.body;
+        // update order table
+        // also update order_book table from books
+        // book: {book_id, quantity}
+        // books: [{book_id, quantity}]
         const [result] = await connection.query(
             `INSERT INTO order (order_time, order_status, username) VALUES (?, ?, ?)`,
             [order_time, order_status, username]
         );
-        res.status(201).json({ order_id: result.insertId, order_time, order_status, username });    
+        const order_id = result.insertId;
+        for (let i = 0; i < books.length; i++) {
+            await connection.query(
+                `INSERT INTO order_book (order_id, book_id, quantity) VALUES (?, ?, ?)`,
+                [order_id, books[i].book_id, books[i].quantity]
+            );
+        }
+        res.status(201).json({ order_id, order_time, order_status, username, books });
     } catch (error) {
         console.error('Error in createOrder:', error);
         res.status(500).json({ message: error.message });
@@ -328,12 +371,23 @@ const createOrder = async (req, res) => {
 
 const createOrderPublisher = async (req, res) => {
     try {
-        const { pu_order_status, pu_order_time, username, pu_id } = req.body;
+        const { pu_order_status, pu_order_time, username, pu_id, books } = req.body;
+        // update order_publisher table
+        // also update order_publisher_book table from books
+        // book: {book_id, quantity}
+        // books: [{book_id, quantity}]
         const [result] = await connection.query(
             `INSERT INTO order_publisher (pu_order_status, pu_order_time, username, pu_id) VALUES (?, ?, ?, ?)`,
             [pu_order_status, pu_order_time, username, pu_id]
         );
-        res.status(201).json({ pu_order_id: result.insertId, pu_order_status, pu_order_time, username, pu_id });
+        const pu_order_id = result.insertId;
+        for (let i = 0; i < books.length; i++) {
+            await connection.query(
+                `INSERT INTO order_publisher_book (pu_order_id, book_id, quantity) VALUES (?, ?, ?)`,
+                [pu_order_id, books[i].book_id, books[i].quantity]
+            );
+        }
+        res.status(201).json({ pu_order_id, pu_order_status, pu_order_time, username, pu_id, books });
     } catch (error) {
         console.error('Error in createOrderItem:', error);
         res.status(500).json({ message: error.message });
