@@ -225,6 +225,19 @@ const getAuthors = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+
+const getPublishers = async(req, res)  => {
+    try{
+        const [rows] = await connection.query(
+            `SELECT * FROM publisher`
+        );
+        res.json(rows);
+    }catch(error){
+        console.error('Error in getPublishers:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
 // TODO:
 const getOrders = async (req, res) => {
     try {
@@ -266,6 +279,8 @@ const getOrder = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+
 
 const getPublisherOrders = async (req, res) => {
     try {
@@ -394,6 +409,8 @@ const createOrderPublisher = async (req, res) => {
     }
 }
 
+
+
 module.exports = {
     getBooks,
     getBook,
@@ -408,6 +425,7 @@ module.exports = {
     signIn,
     //TODO:
     getOrders,
+    getPublishers,
     getPublisherOrders,
     createAuthor,
     createGenre,

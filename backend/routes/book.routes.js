@@ -12,6 +12,7 @@ const {
     getAuthors,
     getOrders,
     getPublisherOrders,
+    getPublishers,
     createAuthor,
     createGenre,
     createPublisher,
@@ -24,8 +25,11 @@ const {
 router.get('/', getBooks);
 router.get('/filter', filterBooks);
 router.get('/authors', getAuthors);
+router.get('/publishers', getPublishers);
 router.get('/:book_id', getBook);
 router.get('/search', searchBookTitles);
+
+
 // TODO:
 router.get('/orders', getOrders);
 // dùng để employee xem tất cả orders của user
