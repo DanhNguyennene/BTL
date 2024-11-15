@@ -1,0 +1,36 @@
+{
+  "version": "0.2.0",
+  "compounds": [
+    {
+      "name": "Full Stack Debug",
+      "configurations": ["Debug Backend", "Debug Frontend"]
+    }
+  ],
+  "configurations": [
+    // {
+    //   "name": "Debug Backend",
+    //   "type": "node",
+    //   "request": "launch",
+    //   "program": "${workspaceFolder}/backend/index.js",
+    //   "cwd": "${workspaceFolder}/backend",
+    //   "runtimeArgs": ["--inspect=9229"],
+    //   "env": {
+    //     "NODE_ENV": "development"
+    //   },
+    //   "console": "integratedTerminal",
+    //   "skipFiles": ["<node_internals>/**"],
+    //   "restart": true,
+    //   "sourceMaps": true
+    // },
+    {
+      "name": "Debug Frontend",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev",
+      "cwd": "${workspaceFolder}/frontend",
+      "env": {
+        "NODE_ENV": "development"
+      }
+    }
+  ]
+}

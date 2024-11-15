@@ -15,19 +15,25 @@ const {
     getPublisherOrders,
     getPublishers,
     createAuthor,
+    updateAuthor,
     createGenre,
+    updateGenre,
+    deleteGenre,
     createPublisher,
+    updatePublisher,
+    deletePublisher,
     createBookGenre,
     createOrder,
     createOrderPublisher,
     getOrder,
+    deleteAuthor,
 
 } = require('../controllers/book.controllers');
 router.get('/', getBooks);
 router.get('/filter', filterBooks);
 router.get('/authors', getAuthors);
+router.get('/genres', getGenres);
 router.get('/publishers', getPublishers);
-router.get('/genres', getGenres)
 router.get('/orders', getOrders);
 
 router.get('/:book_id', getBook);
@@ -57,11 +63,29 @@ router.post('/', createBook);
 router.post('/author', createAuthor);
 // dùng để admin tạo author mới
 // employee dashboard
+router.put('/author/:author_id', updateAuthor);
+// dùng để admin sửa author mới
+// employee dashboard
+router.delete('/author/:author_id', deleteAuthor);
+// dùng để admin xóa author
+// employee dashboard
 router.post('/genre', createGenre);
 // dùng để admin tạo genre mới
 // employee dashboard
+router.put('/genre/:gen_id', updateGenre);
+// dùng để admin sửa genre
+// employee dashboard
+router.delete('/genre/:gen_id', deleteGenre);
+// dùng để admin xóa genre
+// employee dashboard
 router.post('/publisher', createPublisher);
 // dùng để admin tạo publisher mới
+// employee dashboard
+router.put('/publisher/:pu_id', updatePublisher);
+// dùng để admin sửa publisher mới
+// employee dashboard
+router.delete('/publisher/:pu_id', deletePublisher);
+// dùng để admin xóa publisher
 // employee dashboard
 router.post('/book_genre', createBookGenre);
 // dùng để admin tạo book_genre mới
