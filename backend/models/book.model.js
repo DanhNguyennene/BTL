@@ -17,10 +17,10 @@ module.exports = {
             const [rows] = await connection.query(`
                 SELECT
                     b.*,
-                    a.name as authorName,
-                    p.pu_name as publisherName,
-                    g.gen_id as genreID,
-                    g.genre_name as genreName
+                    a.name AS authorName,
+                    p.pu_name AS publisherName,
+                    GROUP_CONCAT(g.gen_id) AS genreID,
+                    GROUP_CONCAT(g.genre_name) AS genreName
                 FROM 
                     BOOK b
                 LEFT JOIN 
@@ -30,7 +30,9 @@ module.exports = {
                 LEFT JOIN 
                     BOOK_GENRE bg ON b.book_id = bg.book_id
                 LEFT JOIN 
-                    GENRE g ON bg.gen_id = g.gen_id;
+                    GENRE g ON bg.gen_id = g.gen_id
+                GROUP BY
+                    b.book_id, a.name, p.pu_name;
             `)
             return rows;
         } catch (error) {
@@ -77,8 +79,8 @@ module.exports = {
                     b.*,
                     a.name AS authorName,
                     p.pu_name AS publisherName,
-                    g.gen_id AS genreID,
-                    g.genre_name AS genreName
+                    GROUP_CONCAT(g.gen_id) AS genreID,
+                    GROUP_CONCAT(g.genre_name) AS genreName
                 FROM 
                     BOOK b
                 LEFT JOIN 
@@ -91,6 +93,8 @@ module.exports = {
                     GENRE g ON bg.gen_id = g.gen_id
                 WHERE 
                     b.book_id = ?
+                GROUP BY
+                    b.book_id, a.name, p.pu_name
             `, [book_id])
             return rows.length ? rows[0] : null;
         } catch (error) {
@@ -99,23 +103,65 @@ module.exports = {
         }
     },
 
-    createABook: async (title, price, author_id, pu_id) => {
+    createABook: async (title, price, author_id, pu_id, imageURL) => {
         try {
-            const [rows] = await connection.query('INSERT INTO book (title, price, author_id, pu_id) VALUE(?, ?, ?, ?)',
-                [title, price, author_id, pu_id]);
+            if (!title || !price || !author_id || !pu_id) {
+                throw new Error('Missing required fields');
+            }
+            console.log('Creating book with values:', {
+                title,
+                price,
+                author_id,
+                pu_id,
+                imageURL
+            });
+            const [result] = await connection.query(
+                'INSERT INTO BOOK (title, price, author_id, pu_id, imageURL) VALUES (?, ?, ?, ?, ?)',
+                [title, price, author_id, pu_id, imageURL]
+            );
+
+            return {
+                book_id: result.insertId,
+                title,
+                price,
+                author_id,
+                pu_id,
+                imageURL
+            };
         } catch (error) {
             console.log(error);
             throw error;
         }
     },
-    updateABook: async (book_id, title, price, author_id, pu_id) => {
+    updateABook: async (book_id, title, price, author_id, pu_id, imageURL) => {
         try {
-            const [rows] = await connection.query('UPDATE book SET title = ?, price = ?, author_id = ?, pu_id = ? WHERE book_id = ?', [title, price, author_id, pu_id, book_id]);
-            
-            return rows.affectedRows === 0? false:true
+            const [rows] = await connection.query(
+                'UPDATE book SET title = ?, price = ?, author_id = ?, pu_id = ?, imageURL = ? WHERE book_id = ?',
+                [title, price, author_id, pu_id, imageURL, book_id]
+            );
+            return rows.affectedRows === 0 ? false : true;
         } catch (error) {
             console.log(error);
             throw error;
+        }
+    },
+
+    updateBookGenres : async (book_id, genres) => {
+        try{
+            await connection.query(
+                'DELETE FROM book_genre where book_id = ?', [book_id]
+            )
+            if (genres.length > 0){
+                const query = 'INSERT INTO book_genre (book_id, gen_id) VALUES ?';
+
+                const values = genres.map(gen_id => [parseInt(book_id), gen_id]);
+                console.log(values)
+                await connection.query(query, [values]);
+            }
+            return true;
+        }catch(error){
+            console.log(error);
+            return false;
         }
     },
     deleteABook: async (book_id) => {

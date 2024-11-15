@@ -1,5 +1,6 @@
 const { getAllBooks, getBookByID, createABook,
-    updateABook, deleteABook, deleteAllofBooks, getBookTitles, createUserCustomer, validUser, filterBook
+    updateABook, deleteABook, deleteAllofBooks, getBookTitles, createUserCustomer, validUser, filterBook,
+    updateBookGenres
 } = require('../models/book.model');
 const jwt = require('jsonwebtoken');
 const connection = require('../config/database');
@@ -68,25 +69,31 @@ const createBook = async (req, res) => {
         // update book_genre table
         for (let i = 0; i < genre_ids.length; i++) {
             await connection.query(
-                `INSERT INTO book_genre (book_id, genre_id) VALUES (?, ?)`,
+                `INSERT INTO book_genre (book_id, gen_id) VALUES (?, ?)`,
                 [newBook.book_id, genre_ids[i]]
             );
         }
         res.status(201).json(newBook);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: error.message + " inside createBook" });
     }
 };
+
 const updateBook = async (req, res) => {
     try {
         const book_id = req.params.book_id;
-        const { title, price, author_id, pu_id } = req.body;
+        const { title, price, author_id, pu_id, genre_ids, imageURL } = req.body;
         console.log(req.body);
-        const result = await updateABook(book_id, title, price, author_id, pu_id);
-        if (!result) {
+        const bookUpdated = await updateABook(book_id, title, price, author_id, pu_id, imageURL);
+        console.log(genre_ids)
+        if (!bookUpdated){
             return res.status(404).json({ message: 'Book not found' });
         }
-        res.json(result);
+        if (genre_ids && Array.isArray(genre_ids)){
+            await updateBookGenres(book_id, genre_ids);
+        }
+        
+        res.json(bookUpdated);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -238,11 +245,24 @@ const getPublishers = async(req, res)  => {
         res.status(500).json({ message: error.message });
     }
 }
+
+const getGenres = async(req, res) => {
+    try{
+        const[rows] = await connection.query(
+            `SELECT * FROM genre`
+        );
+        res.json(rows);
+    }catch(error){
+        console.error('Error in getGenres:', error);
+        res.status(500).json({ message: error.message });
+
+    }
+}
 // TODO:
-const getOrders = async (req, res) => {
+const getOrders = async (req, res) => { 
     try {
         const [rows] = await connection.query(
-            `SELECT * FROM order`
+            `SELECT * FROM \`order\``
         );
         // join with order_book table to get books in each order
         for (let i = 0; i < rows.length; i++) {
@@ -536,6 +556,7 @@ module.exports = {
     signIn,
     //TODO:
     getOrders,
+    getGenres,
     getPublishers,
     getPublisherOrders,
     createAuthor,
