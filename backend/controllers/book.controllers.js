@@ -369,17 +369,7 @@ const deleteAuthor = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
-const getGenres = async (req, res) => {
-    try {
-        const [rows] = await connection.query(
-            `SELECT * FROM genre`
-        );
-        res.json(rows);
-    } catch (error) {
-        console.error('Error in getGenres:', error);
-        res.status(500).json({ message: error.message });
-    }
-}
+
 const createGenre = async (req, res) => {
     try {
         const { genre_name, description } = req.body;

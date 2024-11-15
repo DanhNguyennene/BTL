@@ -16,7 +16,6 @@ const {
     getPublishers,
     createAuthor,
     updateAuthor,
-    getGenres,
     createGenre,
     updateGenre,
     deleteGenre,
@@ -35,7 +34,6 @@ router.get('/filter', filterBooks);
 router.get('/authors', getAuthors);
 router.get('/genres', getGenres);
 router.get('/publishers', getPublishers);
-router.get('/genres', getGenres)
 router.get('/orders', getOrders);
 
 router.get('/:book_id', getBook);
