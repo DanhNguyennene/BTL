@@ -217,7 +217,7 @@ const signIn = async (req, res) => {
 const getAuthors = async (req, res) => {
     try {
         const [rows] = await connection.query(
-            `SELECT author_id, name FROM author`
+            `SELECT * FROM author`
         );
         res.json(rows);
     } catch (error) {
@@ -306,6 +306,7 @@ const createAuthor = async (req, res) => {
     try {
         const { name, dob, biography } = req.body;
         // if some of them is null, it is okay
+
         const [result] = await connection.query(
             `INSERT INTO author (name, dob, biography) VALUES (?, ?, ?)`,
             [name, dob, biography]
@@ -316,17 +317,93 @@ const createAuthor = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
-
+const updateAuthor = async (req, res) => {
+    try {
+        const { author_id, name, dob, biography } = req.body;
+        const [result] = await connection.query(
+            `UPDATE author SET name = ?, dob = ?, biography = ? WHERE author_id = ?`,
+            [name, dob, biography, author_id]
+        );
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Author not found' });
+        }
+        res.json({ author_id, name });
+    } catch (error) {
+        console.error('Error in updateAuthor:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+const deleteAuthor = async (req, res) => {
+    try {
+        const author_id = req.params.author_id;
+        const [result] = await connection.query(
+            `DELETE FROM author WHERE author_id = ?`,
+            [author_id]
+        );
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Author not found' });
+        }
+        res.json({ message: 'Author deleted successfully' });
+    } catch (error) {
+        console.error('Error in deleteAuthor:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+const getGenres = async (req, res) => {
+    try {
+        const [rows] = await connection.query(
+            `SELECT * FROM genre`
+        );
+        res.json(rows);
+    } catch (error) {
+        console.error('Error in getGenres:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
 const createGenre = async (req, res) => {
     try {
-        const { name, description } = req.body;
+        const { genre_name, description } = req.body;
         const [result] = await connection.query(
             `INSERT INTO genre (genre_name, description) VALUES (?, ?)`,
-            [name, description]
+            [genre_name, description]
         );
-        res.status(201).json({ genre_id: result.insertId, name });
+        res.status(201).json({ genre_id: result.insertId, genre_name });
     } catch (error) {
         console.error('Error in createGenre:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+const updateGenre = async (req, res) => {
+    try {
+        const { gen_id, genre_name, description } = req.body;
+
+        const [result] = await connection.query(
+            `UPDATE genre SET genre_name = ?, description = ? WHERE gen_id = ?`,
+            [genre_name, description, gen_id]
+        );
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Genre not found' });
+        }
+
+        res.json({ gen_id, genre_name });
+    } catch (error) {
+        console.error('Error in updateGenre:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+const deleteGenre = async (req, res) => {
+    try {
+        const gen_id = req.params.gen_id;
+        const [result] = await connection.query(
+            `DELETE FROM genre WHERE gen_id = ?`,
+            [gen_id]
+        );
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Genre not found' });
+        }
+        res.json({ message: 'Genre deleted successfully' });
+    } catch (error) {
+        console.error('Error in deleteGenre:', error);
         res.status(500).json({ message: error.message });
     }
 }
@@ -334,13 +411,47 @@ const createGenre = async (req, res) => {
 const createPublisher = async (req, res) => {
     try {
         const { pu_name, pu_phone_number, pu_address } = req.body;
+        console.log(req.body);
         const [result] = await connection.query(
             `INSERT INTO publisher (pu_name, pu_phone_number, pu_address) VALUES (?, ?, ?)`,
             [pu_name, pu_phone_number, pu_address]
         );
-        res.status(201).json({ pu_id: result.insertId, name });
+        res.status(201).json({ pu_id: result.insertId, pu_name });
     } catch (error) {
         console.error('Error in createPublisher:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+const updatePublisher = async (req, res) => {
+    try {
+        const { pu_id, pu_name, pu_phone_number, pu_address } = req.body;
+        const [result] = await connection.query(
+            `UPDATE publisher SET pu_name = ?, pu_phone_number = ?, pu_address = ? WHERE pu_id = ?`,
+            [pu_name, pu_phone_number, pu_address, pu_id]
+        );
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Publisher not found' });
+        }
+        res.json({ pu_id, pu_name });
+    } catch (error) {
+        console.error('Error in updatePublisher:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+const deletePublisher = async (req, res) => {
+    try {
+        const pu_id = req.params.pu_id;
+        console.log(req.params);
+        const [result] = await connection.query(
+            `DELETE FROM publisher WHERE pu_id = ?`,
+            [pu_id]
+        );
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Publisher not found' });
+        }
+        res.json({ message: 'Publisher deleted successfully' });
+    } catch (error) {
+        console.error('Error in deletePublisher:', error);
         res.status(500).json({ message: error.message });
     }
 }
@@ -428,8 +539,15 @@ module.exports = {
     getPublishers,
     getPublisherOrders,
     createAuthor,
+    updateAuthor,
+    deleteAuthor,
+    getGenres,
     createGenre,
+    updateGenre,
+    deleteGenre,
     createPublisher,
+    updatePublisher,
+    deletePublisher,
     createBookGenre,
     createOrder,
     createOrderPublisher,

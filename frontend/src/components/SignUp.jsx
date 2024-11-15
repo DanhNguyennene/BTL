@@ -45,7 +45,7 @@ const SignUp = () => {
     const [validBankAccount, setValidBankAccount] = useState(false);
     const [bankAccountFocus, setBankAccountFocus] = useState(false);
 
-    
+    const [error, setError] = useState('');
 
     const [pwd, setPwd] = useState('');
     const [validPwd, setValidPwd] = useState(false);
@@ -56,7 +56,7 @@ const SignUp = () => {
     const [matchPwdFocus, setMatchPwdFocus] = useState(false);
 
     const [successMsg, setSuccessMsg] = useState('');
-
+    const [submitted, setSubmitted] = useState(false);
     
 
     const [errMsg, setErrMsg] = useState('');
@@ -105,6 +105,7 @@ const SignUp = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setSubmitted(true);
         try{
             const response = await api.post('/api/users/signup', {
                 username,
@@ -117,7 +118,8 @@ const SignUp = () => {
             });
 
             const data = response.data;
-          
+
+    
             if(data.success){
                 
                 setSuccessMsg("Registration successful! Redirecting to login...");
@@ -145,19 +147,24 @@ const SignUp = () => {
             <form className='mt-8 space-y-6' onSubmit={handleSubmit} >
                 <div className='rounded-md shadow-sm -space-y-px'>
                     <div className='relative'>
-                        <input
-                            id='username'
-                            ref={userRef}
-                            type='text'
-                            required
-                            className={`appearance-none rounded-t-md relative block w-full px-3 py-4 border ${validUsername ? 'border-green-500' : username ? 'border-red-500' : 'border-gray-300'} placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500 focus:ring-1 focus:z-10 sm:text-sm transition duration-300 ease-in-out transform hover:border-opacity-75 focus:border-opacity-100 shadow-sm focus:shadow-lg sm:text-lg text-lg`}
-                            placeholder='Username...'
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            onFocus={() => setUsernameFocus(true)}
-                            onBlur ={() => setUsernameFocus(false)}
-                        >
-                        </input>
+                    <input
+                        id='username'
+                        ref={userRef}
+                        type='text'
+                        required
+                        className={`appearance-none rounded-t-md relative block w-full px-3 py-4 border ${submitted && !validUsername ? 'border-red-500' : 'border-gray-300'} placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500 focus:ring-1 focus:z-10 sm:text-sm transition duration-300 ease-in-out transform hover:border-opacity-75 focus:border-opacity-100 shadow-sm focus:shadow-lg sm:text-lg text-lg`}
+                        placeholder='Username...'
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        onFocus={() => setUsernameFocus(true)}
+                        onBlur={() => setUsernameFocus(false)}
+                    />
+                    {submitted && !validUsername && (
+                        <p className='text-red-600 mt-2'>
+                            <FontAwesomeIcon icon={faInfoCircle} className="mr-1" />
+                            Username is already taken. Please choose another one.
+                        </p>
+                    )}
                     </div>
 
                     <div>
