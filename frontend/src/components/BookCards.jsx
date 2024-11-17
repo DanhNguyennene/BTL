@@ -1,5 +1,5 @@
-// Ensure all imports are at the top of the file
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { FiShoppingCart } from "react-icons/fi";
 import 'swiper/css';
@@ -8,9 +8,12 @@ import './BookCards.css';
 import { Pagination } from 'swiper/modules';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
+import { useAuth } from '../contexts/AuthContext';
 
-// Define your custom hook at the top level
 const useBooks = (filteredBooks = null) => {
+  const navigate = useNavigate();
+  const { userInfo, isAuthenticated, isEmployee, isCustomer } = useAuth();
+  
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -54,9 +57,9 @@ const useBooks = (filteredBooks = null) => {
   return { books, loading, error, refetchBooks: fetchBooks };
 };
 
-// Define your component
 const BookCards = ({ filteredBooks, headline }) => {
   const { books, loading, error } = useBooks(filteredBooks);
+  const { userInfo, isAuthenticated } = useAuth();
 
   if (loading) {
     return <div>Loading...</div>;
@@ -83,9 +86,14 @@ const BookCards = ({ filteredBooks, headline }) => {
       >
         {books.map((book) => (
           <SwiperSlide key={book.book_id}>
-            <Link to={`/api/books/${book.book_id}`} className="group">
+            <Link 
+              to={isAuthenticated 
+                ? `/${userInfo.username}/books-info/${book.book_id}`
+                : `/books-info/${book.book_id}`
+              } 
+              className="group"
+            >
               <div className='relative overflow-hidden rounded-lg shadow-lg'>
-              {/* image url đâu ra */}
                 <img src={book.imageURL} alt={book.title} className="w-full object-cover" />
                 <div className='mt-4'>
                   <p className='text-gray-600'>Author: {book.authorName}</p>
@@ -100,5 +108,4 @@ const BookCards = ({ filteredBooks, headline }) => {
   );
 };
 
-// Export the component
 export default BookCards;

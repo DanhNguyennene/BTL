@@ -14,6 +14,7 @@ import EmployeeDashboard from "../components/EmployeeDashboard";
 import CustomerDashboard from "../components/CustomerDashboard";
 import { useAuth } from "../contexts/AuthContext";
 import { Outlet } from "react-router-dom";
+import CustomerOrdersDetail from "../components/employeeDashboard/CustomerOrdersDetail";
 
 
 const AuthenticatedLayout = ({children}) => {
@@ -47,10 +48,9 @@ const router = createBrowserRouter([
         element: <Blog/>
       },
       {
-        path: "/api/books/:id",
+        path: "/books-info/:id",
         element : <SingleBook/>,
         loader:({params}) => fetch(`http://localhost:5000/api/books/${params.id}`)
-        // FETCH: chỗ này fetch từ mongodb thẳng qua thg prop SingleBook : D
       },
       {
         path: "/signup",
@@ -92,7 +92,7 @@ const router = createBrowserRouter([
             </ProtectedRoute>
           },
           {
-            path: 'books/:id',
+            path: 'books-info/:id',
             element: <ProtectedRoute>
               <SingleBook/>
             </ProtectedRoute>,
@@ -111,6 +111,14 @@ const router = createBrowserRouter([
             element:(
               <ProtectedRoute allowedRoles={['customer']}>
                 <CustomerDashboard/>
+              </ProtectedRoute>
+            )
+          },
+          {
+            path: 'employee-dashboard/:customerUsername/order-details',
+            element: (
+              <ProtectedRoute allowedRoles={['employee']}>
+                <CustomerOrdersDetail/>
               </ProtectedRoute>
             )
           }
