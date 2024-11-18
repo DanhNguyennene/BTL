@@ -1,8 +1,9 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { useLoaderData, useNavigate } from 'react-router-dom'
 import { FiDollarSign, FiBook, FiUser, FiTag } from 'react-icons/fi';
 import { FaBook } from "react-icons/fa6";
 import { useAuth } from '../contexts/AuthContext';
+import { GlobalContext } from '../contexts/GlobalContext';
 
 const BookDetail = ({ label, icon: Icon, value, className = '' }) => (
   <div className='flex items-center space-x-3 text-gray-700'>
@@ -26,20 +27,31 @@ const SingleBook = () => {
   const { userInfo, isAuthenticated, isEmployee, isCustomer } = useAuth();
   const {
     authorName,
-    bookID,
+    book_id,
     genreName, 
     imageURL,
     price,
     publisherName,
-    bookTitle
+    title
   } = useLoaderData();
 
+
+  const { cart, updateCart } = useContext(GlobalContext);
   const handleAddToCart = () => {
     if (!isAuthenticated) {
       navigate('/signin');
       return;
     }
     // Add to cart logic here
+    updateCart({
+      book_id,
+      title,
+      authorName,
+      imageURL,
+      price,
+      publisherName
+    });
+    console.log(cart);
   };
 
   const handlePurchase = () => {
@@ -48,6 +60,17 @@ const SingleBook = () => {
       return;
     }
     // Purchase logic here
+    // set 
+    updateCart({
+      book_id,
+      title,
+      authorName,
+      imageURL,
+      price,
+      publisherName
+    });
+    // navigate to checkout page
+    navigate('/${userInfo.username}/cart');
   };
 
   const renderActionButtons = () => {
@@ -83,7 +106,7 @@ const SingleBook = () => {
           <div className='relative group'>
             <img 
               src={imageURL} 
-              alt={bookTitle} 
+              alt={title} 
               className='w-full rounded-lg shadow-xl transition-transform duration-300 group-hover:scale-105' 
             />
             <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-5 transition-all duration-300 rounded-lg" />
@@ -93,7 +116,7 @@ const SingleBook = () => {
         {/* Book Details Section */}
         <div className='bg-green-100 lg:w-2/3 space-y-6 px-10 rounded-2xl shadow-2xl'>
           <h1 className='text-center font-bold text-4xl text-gray-500 transition-colors duration-300 hover:text-blue-600 pt-10'>
-            {bookTitle}
+            {title}
           </h1>
 
           {/* Book Information Grid */}

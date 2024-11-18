@@ -16,6 +16,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { Outlet } from "react-router-dom";
 import CustomerOrdersDetail from "../components/employeeDashboard/CustomerOrdersDetail";
 
+import Checkout from "../shop/Checkout";
 
 const AuthenticatedLayout = ({children}) => {
   const{userInfo} = useAuth();
@@ -119,6 +120,14 @@ const router = createBrowserRouter([
             element: (
               <ProtectedRoute allowedRoles={['employee']}>
                 <CustomerOrdersDetail/>
+              </ProtectedRoute>
+            )
+          },
+          {
+            path: 'cart',
+            element: (
+              <ProtectedRoute allowedRoles={['customer']}>
+                <Checkout />
               </ProtectedRoute>
             )
           }

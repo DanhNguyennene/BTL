@@ -53,13 +53,13 @@ const EmployeeDashboard = () => {
   };
   return (
     // a dashboard to add new books, update books, delete books
-    <div className='flex h-screen bg-gray-100'>
+    <div className='flex h-screen bg-white pt-16'>
       <div className='w-64 bg-white shadow-lg'>
-        <div className='p-4'>
+        {/* <div className='p-4'>
           <h2 className='text-2xl font-bold text-gray-800'>
             Employee - Portal
           </h2>
-        </div>
+        </div> */}
         <nav className='mt-4'>
             {tabs.map((tab) => (
               <button
