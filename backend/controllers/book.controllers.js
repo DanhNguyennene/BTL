@@ -86,13 +86,13 @@ const updateBook = async (req, res) => {
         console.log(req.body);
         const bookUpdated = await updateABook(book_id, title, price, author_id, pu_id, imageURL);
         console.log(genre_ids)
-        if (!bookUpdated){
+        if (!bookUpdated) {
             return res.status(404).json({ message: 'Book not found' });
         }
-        if (genre_ids && Array.isArray(genre_ids)){
+        if (genre_ids && Array.isArray(genre_ids)) {
             await updateBookGenres(book_id, genre_ids);
         }
-        
+
         res.json(bookUpdated);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -234,32 +234,32 @@ const getAuthors = async (req, res) => {
 };
 
 
-const getPublishers = async(req, res)  => {
-    try{
+const getPublishers = async (req, res) => {
+    try {
         const [rows] = await connection.query(
             `SELECT * FROM publisher`
         );
         res.json(rows);
-    }catch(error){
+    } catch (error) {
         console.error('Error in getPublishers:', error);
         res.status(500).json({ message: error.message });
     }
 }
 
-const getGenres = async(req, res) => {
-    try{
-        const[rows] = await connection.query(
+const getGenres = async (req, res) => {
+    try {
+        const [rows] = await connection.query(
             `SELECT * FROM genre`
         );
         res.json(rows);
-    }catch(error){
+    } catch (error) {
         console.error('Error in getGenres:', error);
         res.status(500).json({ message: error.message });
 
     }
 }
 // TODO:
-const getOrders = async (req, res) => { 
+const getOrders = async (req, res) => {
     try {
         const [rows] = await connection.query(
             `SELECT * FROM \`order\``
@@ -281,18 +281,25 @@ const getOrders = async (req, res) => {
 const getOrder = async (req, res) => {
     try {
         const { username } = req.params;
-        const [rows] = await connection.query(
-            `SELECT * FROM order WHERE username = ?`,
-            [username]
-        );
+        // find order where username = username
         // join with order_book table to get books in each order
-        for (let i = 0; i < rows.length; i++) {
-            const [books] = await connection.query(
-                `SELECT book_id, quantity FROM order_book WHERE order_id = ?`,
-                [rows[i].order_id]
-            );
-            rows[i].books = books;
-        }
+        // and then join the book_id with book table to get book title
+        const [rows] = await connection.query(
+            `SELECT 
+                \`order\`.*,
+                order_book.*,
+                book.*
+            FROM 
+                \`order\`
+            JOIN 
+                order_book ON \`order\`.order_id = order_book.order_id
+            JOIN 
+                book ON order_book.book_id = book.book_id
+            WHERE 
+                \`order\`.username = ?;
+        ` , [username]
+        );
+        
         res.json(rows);
     } catch (error) {
         console.error('Error in getOrder:', error);
@@ -488,14 +495,14 @@ const createOrder = async (req, res) => {
         // book: {book_id, quantity}
         // books: [{book_id, quantity}]
         const [result] = await connection.query(
-            `INSERT INTO order (order_time, order_status, username) VALUES (?, ?, ?)`,
+            `INSERT INTO \`order\` (order_time, order_status, username) VALUES (?, ?, ?)`,
             [order_time, order_status, username]
         );
         const order_id = result.insertId;
         for (let i = 0; i < books.length; i++) {
             await connection.query(
                 `INSERT INTO order_book (order_id, book_id, quantity) VALUES (?, ?, ?)`,
-                [order_id, books[i].book_id, books[i].quantity]
+                [order_id, books[i].book_id, 1]
             );
         }
         res.status(201).json({ order_id, order_time, order_status, username, books });
@@ -530,7 +537,23 @@ const createOrderPublisher = async (req, res) => {
     }
 }
 
-
+const getUserInfo = async (req, res) => {
+    try {
+        // get user info from customer table to get bank_acc and address
+        const { username } = req.params;
+        const [rows] = await connection.query(
+            `SELECT * FROM customer WHERE username = ?`,
+            [username]
+        );
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.json(rows[0]);
+    } catch (error) {
+        console.error('Error in getUserInfo:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
 
 module.exports = {
     getBooks,
@@ -563,4 +586,6 @@ module.exports = {
     createOrder,
     createOrderPublisher,
     getOrder,
+
+    getUserInfo
 };
