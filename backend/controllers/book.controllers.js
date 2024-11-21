@@ -307,14 +307,59 @@ const getOrder = async (req, res) => {
     }
 }
 
+const updateOrderStatus = async(req, res) => {
+    try{
+        const{order_id} = req.params;
+        const {order_status} = req.body;
+
+
+
+        const validStatuses = ['Pending', 'Processing', 'Completed', 'Cancelled', 'Failed'];
+        if(!validStatuses.includes(order_status)){
+            return res.status(400).json({
+                success:false,
+                message: "Invalid order status"
+            })
+        }
+        console.log(order_id)
+        console.log(order_status)
+        const [result] = await connection.query(
+            `UPDATE \`order\` SET order_status = ? WHERE order_id = ?`, 
+            [order_status, order_id]
+        )
+        if (result.affectedRows===0){
+            return res.status(404).json({
+                success:false,
+                message: 'Order not found'
+            })
+        }
+
+        res.json({
+            success:true,
+            message:"Order status has been update"
+        })
+    }catch(error){ 
+        console.error('Error in updateOrderStatus:', error);
+        res.status(500).json({
+            success: false,
+            message: 'An error occurred while updating order status'
+        });
+    }
+}
+
+
+
 
 
 const getPublisherOrders = async (req, res) => {
     try {
+        // console.log("hello")
         const [rows] = await connection.query(
             `SELECT * FROM order_publisher`
         );
+        console.log("hello")
         // join with order_publisher_book table to get books in each order
+        console.log(rows)
         for (let i = 0; i < rows.length; i++) {
             const [books] = await connection.query(
                 `SELECT book_id, quantity FROM order_publisher_book WHERE pu_order_id = ?`,
@@ -322,9 +367,41 @@ const getPublisherOrders = async (req, res) => {
             );
             rows[i].books = books;
         }
+
+        for (let i = 0; i < rows.length; i ++){
+            const [publisherName] = await connection.query(
+                `SELECT pu_name FROM PUBLISHER WHERE pu_id = ?`, [rows[i].pu_id]
+            )
+            rows[i].publisherName = publisherName
+        }
         res.json(rows);
+       
     } catch (error) {
+        console.log("hello")
         console.error('Error in getPublisherOrders:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+
+
+const getPublisherOrder = async (req, res) => {
+    try{
+        const {employeeUsername} = req.params;
+
+        const [rows] = await connection.query(
+            `SELECT * from ORDER_PUBLISHER WHERE username = ?`, [employeeUsername]
+        )
+
+        for (let i = 0; i < rows.length; i++) {
+            const [books] = await connection.query(
+                `SELECT book_id, quantity FROM order_publisher_book WHERE pu_order_id = ?`,
+                [rows[i].pu_order_id]
+            );
+            rows[i].books = books;
+        }
+        res.json(rows)
+    }catch(error){
+        console.error('Error in getOrder:', error);
         res.status(500).json({ message: error.message });
     }
 }
@@ -586,6 +663,7 @@ module.exports = {
     createOrder,
     createOrderPublisher,
     getOrder,
-
-    getUserInfo
+    getPublisherOrder,
+    getUserInfo,
+    updateOrderStatus
 };

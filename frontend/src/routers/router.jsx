@@ -15,6 +15,7 @@ import CustomerDashboard from "../components/CustomerDashboard";
 import { useAuth } from "../contexts/AuthContext";
 import { Outlet } from "react-router-dom";
 import CustomerOrdersDetail from "../components/employeeDashboard/CustomerOrdersDetail";
+import PublisherOrdersDetail from "../components/employeeDashboard/PublisherOrdersDetail";
 
 import Checkout from "../shop/Checkout";
 
@@ -130,7 +131,16 @@ const router = createBrowserRouter([
                 <Checkout />
               </ProtectedRoute>
             )
+          },
+          {
+            path: 'employee-dashboard/:employeeUsername/publisher-order-details',
+            element: (
+              <ProtectedRoute allowedRoles={['employee']}>
+                <PublisherOrdersDetail/>
+              </ProtectedRoute>
+            )
           }
+          
         ]
       }
       

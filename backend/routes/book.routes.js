@@ -27,6 +27,8 @@ const {
     createOrderPublisher,
     getOrder,
     deleteAuthor,
+    getPublisherOrder,
+    updateOrderStatus,
 
 } = require('../controllers/book.controllers');
 router.get('/', getBooks);
@@ -35,18 +37,22 @@ router.get('/authors', getAuthors);
 router.get('/genres', getGenres);
 router.get('/publishers', getPublishers);
 router.get('/orders', getOrders);
-
-router.get('/:book_id', getBook);
+router.get('/order_publisher', getPublisherOrders);
 router.get('/search', searchBookTitles);
-
+router.get('/order_publisher/:employeeUsername', getPublisherOrder);
 
 // TODO:
 // dùng để employee xem tất cả orders của user
 // employee dashboard
-router.get('/order/:username', getOrder);
+router.get('/order/:username', getOrder); // xong
+
+
+router.get('/:book_id', getBook);
+
 // dung de user xem các order của mình
 // user dashboard
-router.get('/order_publisher', getPublisherOrders);
+// router.get('/order_publisher', getPublisherOrders);
+
 // dùng để employee xem tất cả orders đến publisher
 // employee dashboard
 
@@ -60,36 +66,50 @@ router.post('/', createBook);
 // tạo một droplist để chọn genre cho book, sau đó, db sẽ tự động thêm vào book_genre table (POST /book_genre)
 // employee dashboard
 // TODO:
-router.post('/author', createAuthor);
+router.post('/author', createAuthor); //xong
 // dùng để admin tạo author mới
 // employee dashboard
-router.put('/author/:author_id', updateAuthor);
+router.put('/author/:author_id', updateAuthor); //xong
 // dùng để admin sửa author mới
 // employee dashboard
-router.delete('/author/:author_id', deleteAuthor);
+router.delete('/author/:author_id', deleteAuthor); //xong
 // dùng để admin xóa author
+
+router.patch('/order/:order_id/status', updateOrderStatus);
+
+
+
 // employee dashboard
-router.post('/genre', createGenre);
+router.post('/genre', createGenre);//xong
 // dùng để admin tạo genre mới
 // employee dashboard
-router.put('/genre/:gen_id', updateGenre);
+router.put('/genre/:gen_id', updateGenre);//xong
 // dùng để admin sửa genre
 // employee dashboard
-router.delete('/genre/:gen_id', deleteGenre);
+router.delete('/genre/:gen_id', deleteGenre); //xong
 // dùng để admin xóa genre
+
+
+
 // employee dashboard
-router.post('/publisher', createPublisher);
+router.post('/publisher', createPublisher); //xong
 // dùng để admin tạo publisher mới
 // employee dashboard
-router.put('/publisher/:pu_id', updatePublisher);
+router.put('/publisher/:pu_id', updatePublisher);//xong
 // dùng để admin sửa publisher mới
 // employee dashboard
-router.delete('/publisher/:pu_id', deletePublisher);
+router.delete('/publisher/:pu_id', deletePublisher);//xong
 // dùng để admin xóa publisher
 // employee dashboard
+
+
+
 router.post('/book_genre', createBookGenre);
 // dùng để admin tạo book_genre mới
 // hỗ trợ cho việc tạo book mới (POST /)
+
+
+
 router.post('/order', createOrder);
 // dùng để user tạo order mới
 // sẽ update cho order_book table vì mỗi order sẽ có nhiều sách

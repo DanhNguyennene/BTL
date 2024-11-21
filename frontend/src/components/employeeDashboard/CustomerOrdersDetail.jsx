@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { FiArrowLeft, FiClock, FiUser, FiPackage } from 'react-icons/fi';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../api/axios';
-import BookCards from '../BookCards';
+
 const StatusBadge = ({ status }) => {
   const getStatusStyle = () => {
     const styles = {
@@ -25,11 +25,10 @@ const StatusBadge = ({ status }) => {
 
 const OrderDetails = () => {
     const { customerUsername } = useParams();
-    console.log(customerUsername)
     const navigate = useNavigate();
     const { userInfo, isEmployee } = useAuth();
     
-    const [orderData, setOrderData] = useState(null);
+    const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [editingStatus, setEditingStatus] = useState(false);
@@ -42,11 +41,9 @@ const OrderDetails = () => {
   const fetchOrderData = async () => {
     try {
       setLoading(true);
-      console.log(customerUsername)
       const response = await api.get(`/api/books/order/${customerUsername}`);
-      console.log(response.data)
-      setOrderData(response.data[0]); // Assuming we're showing the first order
-      setNewStatus(response.data[0].order_status);
+      setOrders(response.data);
+      setNewStatus(response.data[0]?.order_status || '');
     } catch (err) {
       setError('Failed to fetch order data');
       console.error(err);
@@ -57,14 +54,21 @@ const OrderDetails = () => {
 
   const handleStatusUpdate = async () => {
     try {
-      await api.patch(`/api/books/order/${orderData.order_id}`, {
+      await api.patch(`/api/books/order/${orders[0]?.order_id}/status`, {
         order_status: newStatus
       });
-      setOrderData({ ...orderData, order_status: newStatus });
+      // setOrders(orders.map(order => ({...order, order_status: newStatus})));
+      fetchOrderData();
       setEditingStatus(false);
     } catch (err) {
       console.error('Failed to update status:', err);
     }
+  };
+
+  const calculateTotal = () => {
+    return orders.reduce((total, order) => {
+      return total + (parseFloat(order.price) * order.quantity);
+    }, 0).toFixed(2);
   };
 
   if (loading) {
@@ -75,7 +79,7 @@ const OrderDetails = () => {
     );
   }
 
-  if (error || !orderData) {
+  if (error || !orders.length) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-red-500">Error loading order details</div>
@@ -100,16 +104,16 @@ const OrderDetails = () => {
             <div className="flex justify-between items-start flex-wrap gap-4">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
-                  Order #{orderData.order_id}
+                  Order #{orders[0]?.order_id}
                 </h1>
                 <div className="mt-2 flex items-center space-x-4">
                   <div className="flex items-center text-gray-600">
                     <FiUser className="mr-2" />
-                    <span>{orderData.username}</span>
+                    <span>{orders[0]?.username}</span>
                   </div>
                   <div className="flex items-center text-gray-600">
                     <FiClock className="mr-2" />
-                    <span>{format(new Date(orderData.order_time), 'PPp')}</span>
+                    <span>{format(new Date(orders[0]?.order_time), 'PPp')}</span>
                   </div>
                 </div>
               </div>
@@ -143,7 +147,7 @@ const OrderDetails = () => {
                     </div>
                   ) : (
                     <div className="flex items-center space-x-2">
-                      <StatusBadge status={orderData.order_status} />
+                      <StatusBadge status={orders[0]?.order_status} />
                       <button
                         onClick={() => setEditingStatus(true)}
                         className="text-blue-500 hover:text-blue-700 text-sm"
@@ -153,7 +157,7 @@ const OrderDetails = () => {
                     </div>
                   )
                 ) : (
-                  <StatusBadge status={orderData.order_status} />
+                  <StatusBadge status={orders[0]?.order_status} />
                 )}
               </div>
             </div>
@@ -167,23 +171,39 @@ const OrderDetails = () => {
             Order Items
           </h2>
           <div className="border-t pt-4">
-            <BookCards
-              filteredBooks={orderData.books}
-              headline="Books in this Order"
-            />
+            <div className="space-y-4">
+              {orders.map((item, index) => (
+                <div key={index} className="flex items-center space-x-4 p-4 border rounded-lg">
+                  <img 
+                    src={item.imageURL} 
+                    alt={item.title} 
+                    className="w-20 h-20 object-cover rounded"
+                  />
+                  <div className="flex-1">
+                    <h3 className="font-semibold">{item.title}</h3>
+                    <p className="text-gray-600">Quantity: {item.quantity}</p>
+                    <p className="text-gray-600">Price: ${item.price}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Order Summary Section */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
-          <div className="space-y-2">
-            {orderData.books.map((book, index) => (
+          <div className="space-y-4">
+            {orders.map((item, index) => (
               <div key={index} className="flex justify-between text-gray-600">
-                <span>Book ID: {book.book_id}</span>
-                <span>Quantity: {book.quantity}</span>
+                <span>{item.title}</span>
+                <span>${(parseFloat(item.price) * item.quantity).toFixed(2)}</span>
               </div>
             ))}
+            <div className="border-t pt-4 flex justify-between font-semibold">
+              <span>Total</span>
+              <span>${calculateTotal()}</span>
+            </div>
           </div>
         </div>
       </div>
