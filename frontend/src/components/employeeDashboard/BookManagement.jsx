@@ -500,7 +500,10 @@ const BookManagement = () => {
                   Title
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Price
+                  Price Per Book 
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Quantity 
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Genre
@@ -529,6 +532,7 @@ const BookManagement = () => {
                   </td>
                   <td className="px-4 py-2 whitespace-nowrap">{book.title}</td>
                   <td className="px-4 py-2 whitespace-nowrap">${book.price}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">{book.quantity}</td>
                   <td className="px-4 py-2 whitespace-nowrap">
                     <div className="flex flex-wrap gap-2">
                       {book.genreName?.split(',').map((genre, index) => (

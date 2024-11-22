@@ -29,6 +29,7 @@ const {
     deleteAuthor,
     getPublisherOrder,
     updateOrderStatus,
+    updatePublisherOrderStatus,
 
 } = require('../controllers/book.controllers');
 router.get('/', getBooks);
@@ -76,6 +77,7 @@ router.delete('/author/:author_id', deleteAuthor); //xong
 // dùng để admin xóa author
 
 router.patch('/order/:order_id/status', updateOrderStatus);
+router.patch('/pubisher-order/:pu_order_id/status',updatePublisherOrderStatus)
 
 
 

@@ -5,6 +5,9 @@ import { FiArrowLeft, FiClock, FiUser, FiPackage } from 'react-icons/fi';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../api/axios';
 
+
+
+
 const StatusBadge = ({ status }) => {
   const getStatusStyle = () => {
     const styles = {
@@ -33,7 +36,7 @@ const OrderDetails = () => {
     const [error, setError] = useState(null);
     const [editingStatus, setEditingStatus] = useState(false);
     const [newStatus, setNewStatus] = useState('');
-
+    const cannotChange = ['Completed', 'Cancelled' ]
   useEffect(() => {
     fetchOrderData();
   }, [customerUsername]);
@@ -150,7 +153,8 @@ const OrderDetails = () => {
                       <StatusBadge status={orders[0]?.order_status} />
                       <button
                         onClick={() => setEditingStatus(true)}
-                        className="text-blue-500 hover:text-blue-700 text-sm"
+                        disabled = {cannotChange.includes(orders[0].order_status)}
+                        className={`${ cannotChange.includes(orders[0].order_status) ? 'text-gray-500' : 'text-blue-500'} ${ cannotChange.includes(orders[0].order_status) ? '':'hover:text-blue-700' } text-sm`}
                       >
                         Edit Status
                       </button>

@@ -1,3 +1,5 @@
+const dayjs = require('dayjs');
+
 const { getAllBooks, getBookByID, createABook,
     updateABook, deleteABook, deleteAllofBooks, getBookTitles, createUserCustomer, validUser, filterBook,
     updateBookGenres
@@ -348,6 +350,42 @@ const updateOrderStatus = async(req, res) => {
 }
 
 
+const updatePublisherOrderStatus = async(req, res) => {
+    try{
+        const{pu_order_id} = req.params;
+        const {pu_order_status} = req.body;
+
+        const validStatuses = ['Success', 'Pending', 'Failed'];
+        if(!validStatuses.includes(pu_order_status)){
+            return res.status(400).json({
+                success:false,
+                message: "Invalid order status"
+            })
+        }
+
+        const [result] = await connection.query(
+            `UPDATE \`ORDER_PUBLISHER\` SET pu_order_status = ? WHERE pu_order_id = ?`, 
+            [pu_order_status, pu_order_id]
+        )
+        if (result.affectedRows===0){
+            return res.status(404).json({
+                success:false,
+                message: 'Order not found'
+            })
+        }
+
+        res.json({
+            success:true,
+            message:"Order status has been update"
+        })
+    }catch(error){ 
+        console.error('Error in updateOrderStatus:', error);
+        res.status(500).json({
+            success: false,
+            message: 'An error occurred while updating order status'
+        });
+    }
+}
 
 
 
@@ -592,13 +630,15 @@ const createOrder = async (req, res) => {
 const createOrderPublisher = async (req, res) => {
     try {
         const { pu_order_status, pu_order_time, username, pu_id, books } = req.body;
+        const pu_order_time_change = dayjs(pu_order_time).format('YYYY-MM-DD');
+
         // update order_publisher table
         // also update order_publisher_book table from books
         // book: {book_id, quantity}
         // books: [{book_id, quantity}]
         const [result] = await connection.query(
             `INSERT INTO order_publisher (pu_order_status, pu_order_time, username, pu_id) VALUES (?, ?, ?, ?)`,
-            [pu_order_status, pu_order_time, username, pu_id]
+            [pu_order_status, pu_order_time_change, username, pu_id]
         );
         const pu_order_id = result.insertId;
         for (let i = 0; i < books.length; i++) {
@@ -661,6 +701,7 @@ module.exports = {
     deletePublisher,
     createBookGenre,
     createOrder,
+    updatePublisherOrderStatus,
     createOrderPublisher,
     getOrder,
     getPublisherOrder,

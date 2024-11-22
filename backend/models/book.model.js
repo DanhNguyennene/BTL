@@ -186,7 +186,7 @@ module.exports = {
     createUserCustomer: async (userData) => {
         const connection_t = await require('../config/database').getConnection()
         try {
-            const {username, name, phone_number, email, password, address, bank_acc} = userData;
+            const {username, name, phone_number, email, passw   , address, bank_acc} = userData;
             console.log("Received userData:", userData);
             console.log("Destructured values:", {username, name, phone_number, email, password, address, bank_acc});
             await connection_t.beginTransaction();

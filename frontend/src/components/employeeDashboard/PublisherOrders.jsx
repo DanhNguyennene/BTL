@@ -1,17 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/axios';
-import { format } from 'date-fns';
+import { format, set } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-
-
-
-
-
-
-
-
-
+import AddOrderForm from './modal/AddOrderForm';
 
 
 const CustomerOrders = () => {
@@ -19,8 +11,60 @@ const CustomerOrders = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilters] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
-
   const { userInfo, isAuthenticated, isEmployee, isCustomer } = useAuth();
+
+  const [showAddOrderForm, setShowAddOrderForm] = useState(false);
+  const [publishers, setPublishers] = useState([]);
+  const [books, setBooks] = useState([]);
+  const [newOrder, setNewOrder] = useState({
+    pu_id: '',
+    books: [],
+    pu_order_status: 'Pending',
+    pu_order_time: new Date().toISOString()
+  })
+
+  useEffect(() => {
+    const fetchPublishersAndBooks = async () => {
+      try{
+        const [publishersRes, booksRes] = await Promise.all([
+          api.get('/api/books/publishers'),
+          api.get('/api/books')
+        ]);
+        setPublishers(publishersRes.data);
+        setBooks(booksRes.data);
+      }catch(error){
+        console.error("Error while fetching: ", error);
+      }
+
+    };
+
+    fetchPublishersAndBooks();
+  },[]);
+
+
+  
+
+  const handleSubmitOrder = async () => {
+    try{
+      const orderData = {
+        ...newOrder,
+        username: userInfo.username
+      };
+      console.log(orderData)
+      await api.post('/api/books/order_publisher', orderData)
+      setShowAddOrderForm(false);
+      fetchOrders();
+      setNewOrder({
+        pu_id: '',
+        books: [],
+        pu_order_status: 'Pending',
+        pu_order_time: new Date().toISOString(),
+      });
+    }catch(error){
+      console.error("Error creating order: ", error);
+    }
+  } 
+
 
   const navigate = useNavigate();
   
@@ -68,7 +112,27 @@ const CustomerOrders = () => {
   return (
     <div className='p-6 mt-5'>
       <div className='mb-8'>
-        <h1 className='text-2xl font-bold mb-4 '>Publishers</h1>
+        <div className='flex justify-between items-center mb-5'>
+
+          <h1 className='text-2xl font-bold mb-4 '>Publishers</h1>
+          <button
+            className='px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700'
+            onClick={() => setShowAddOrderForm(true)}
+          >
+            + Add Publisher Order
+          </button>
+        </div>
+
+        {showAddOrderForm &&  <AddOrderForm
+          books={books}
+          publishers={publishers}
+          newOrder={newOrder}
+          setNewOrder={setNewOrder}
+          setShowAddOrderForm={setShowAddOrderForm}
+          handleSubmitOrder={handleSubmitOrder}
+        />}
+
+
         <div className='flex flex-col md:flex-row gap-6 mb-6'>
           
           {/* Search */}

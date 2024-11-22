@@ -40,13 +40,14 @@ const OrderDetails = () => {
     fetchOrderData();
   }, [employeeUsername]);
 
+  const cannotChange = ['Success', 'Failed' ]
   const fetchOrderData = async () => {
     try {
       setLoading(true);
       console.log(employeeUsername)
       const response = await api.get(`/api/books/order_publisher/${employeeUsername}`);
       console.log(response.data)
-      setOrderData(response.data[0]); // Assuming we're showing the first order
+      setOrderData(response.data[0]); 
       setNewStatus(response.data[0].pu_order_status);
     } catch (err) {
       setError('Failed to fetch order data');
@@ -56,17 +57,17 @@ const OrderDetails = () => {
     }
   };
 
-//   const handleStatusUpdate = async () => {
-//     try {
-//       await api.patch(`/api/books/order/${orderData.pu_order_id}`, {
-//         order_status: newStatus
-//       });
-//       setOrderData({ ...orderData, order_status: newStatus });
-//       setEditingStatus(false);
-//     } catch (err) {
-//       console.error('Failed to update status:', err);
-//     }
-//   };
+  const handleStatusUpdate = async () => {
+    try {
+      await api.patch(`/api/books/pubisher-order/${orderData.pu_order_id}/status`, {
+        pu_order_status: newStatus
+      });
+      setOrderData({ ...orderData, pu_order_status: newStatus });
+      setEditingStatus(false);
+    } catch (err) {
+      console.error('Failed to update status:', err);
+    }
+  };
 
   if (loading) {
     return (
@@ -114,8 +115,52 @@ const OrderDetails = () => {
                   </div>
                 </div>
               </div>
+
+              <div className="flex items-center space-x-4">
+                {isEmployee ? (
+                  editingStatus ? (
+                    <div className="flex items-center space-x-2">
+                      <select
+                        value={newStatus}
+                        onChange={(e) => setNewStatus(e.target.value)}
+                        className="border rounded-md px-3 py-1 focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="Success">Success</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Failed">Failed</option>
+                      </select>
+                      <button
+                        onClick={handleStatusUpdate}
+                        className="bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setEditingStatus(false)}
+                        className="text-gray-500 hover:text-gray-700"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <StatusBadge status={orderData?.pu_order_status} />
+                      <button
+                        disabled = {cannotChange.includes(orderData.pu_order_status)}
+                        onClick={() => setEditingStatus(true)}
+                        className={`${ cannotChange.includes(orderData.pu_order_status) ? 'text-gray-500' : 'text-blue-500'} ${ cannotChange.includes(orderData.pu_order_status) ? '':'hover:text-blue-700' } text-sm`}
+                      >
+                        Edit Status
+                      </button>
+                    </div>
+                  )
+                ) : (
+                  <StatusBadge status={orderData?.pu_order_status} />
+                )}
+              </div>
             </div>
           </div>
+          
         </div>
 
         {/* Order Items Section */}
