@@ -605,10 +605,6 @@ const createBookGenre = async (req, res) => {
 const createOrder = async (req, res) => {
     try {
         const { order_time, order_status, username, books } = req.body;
-        // update order table
-        // also update order_book table from books
-        // book: {book_id, quantity}
-        // books: [{book_id, quantity}]
         const [result] = await connection.query(
             `INSERT INTO \`order\` (order_time, order_status, username) VALUES (?, ?, ?)`,
             [order_time, order_status, username]
@@ -684,7 +680,6 @@ module.exports = {
     getAuthors,
     signUp,
     signIn,
-    //TODO:
     getOrders,
     getGenres,
     getPublishers,
