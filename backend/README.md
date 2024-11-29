@@ -121,9 +121,6 @@ backend/
 
 
 
-
-
-
 DROP DATABASE IF EXISTS EBookstoreDB;
 CREATE DATABASE EBookstoreDB;
 
