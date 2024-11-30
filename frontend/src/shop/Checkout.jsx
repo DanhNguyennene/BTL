@@ -1,99 +1,159 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect,useCallback  } from "react";
 // import { GlobalContext } from "../contexts/GlobalContext";
 import { useNavigate,useLocation  } from "react-router-dom";
 import api from "../api/axios";
+
 export default function Checkout() {
-  // Current books in the cart
-  // const { cart, resetCart } = useContext(GlobalContext);
   const [cart, setCart] = useState([]);
-  // User information
   const [userInfo, setUserInfo] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const user = JSON.parse(localStorage.getItem("user"));
   const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
-
-  const bookIdInput = queryParams.get("bookId");
-  useEffect(() => {
-    const fetchData = async () => {
-      await getUserInfo();  // Wait for getUserInfo to complete first
-      if (bookIdInput)
-      await insertInCart(bookIdInput);  // Then get the cart after the user info is fetched
-      await getCart();       // Then get the cart after the user info is fetched
-    };
-  
-    fetchData();
-  }, [bookIdInput]);
-
-  // Navigation
   const navigate = useNavigate();
+  const queryParams = new URLSearchParams(location.search);
+  const [bookIdInput, setBookIdInput] = useState(queryParams.get('bookId'));     
 
-  const getUserInfo = async () => {
-    const response = await fetch(`${api.defaults.baseURL}api/users/${user.username}`);
-    const data = await response.json();
-    setUserInfo(data);
-    return data;
+  const fetchUserInfo = useCallback(async () => {
+    try {
+      const response = await fetch(`${api.defaults.baseURL}api/users/${user.username}`);
+      if (!response.ok) throw new Error('Failed to fetch user info');
+      const data = await response.json();
+      setUserInfo(data);
+    } catch (err) {
+      setError(err.message);
+      console.error("Error fetching user info:", err);
+    }
+  }, [user.username]);
+
+  const fetchCart = useCallback(async () => {
+    try {
+      const response = await api.get(`${api.defaults.baseURL}api/books/cart/${user.username}`);
+      setCart(response.data);
+      return response.data;
+    } catch (err) {
+      setError(err.message);
+      console.error("Error fetching cart:", err);
+      return [];
+    }
+  }, [user.username]);
+
+  const insertInCart = async (bookId, existingCart) => {
+    try {
+      // Convert bookId to number
+      bookId = parseInt(bookId);
+      
+      // Fetch the latest cart to ensure we're working with current data
+      existingCart = await fetchCart();
+      
+      // Check if the book is already in the cart
+      const isBookInCart = existingCart.some(item => item.book_id === bookId);
+      
+      if (!isBookInCart) {
+        // If cart is empty, create a new cart
+        if (existingCart.length === 0) {
+          const book_data = (await api.get(`${api.defaults.baseURL}api/books/${bookId}`)).data;
+          await api.post(`${api.defaults.baseURL}api/books/cart/${user.username}/create`, {
+            order_time: new Date().toISOString().slice(0, 19).replace("T", " "),
+            order_status: 'inCart',
+            books: [book_data]
+          });
+        } else {
+          // If cart exists, insert the book
+          await api.post(`${api.defaults.baseURL}api/books/cart/${user.username}/insert`, {
+            order_id: existingCart[0].order_id,
+            book_id: bookId,
+          });
+        }
+        
+        // Refresh cart after insertion
+        await fetchCart();
+      }
+      
+      // Clear the bookIdInput after processing
+      setBookIdInput(null);
+    } catch (err) {
+      setError(err.message);
+      console.error("Error inserting cart item:", err);
+    }
   };
-  const getCart = async () => {
-    const response = await fetch(`${api.defaults.baseURL}api/books/cart/${user.username}`);
-    const data = await response.json();
-    setCart(data);
-    return data;
+
+  const removeItem = async (bookId) => {
+    try {
+      bookId = parseInt(bookId);
+      const toDelete = cart.find(item => item.book_id === bookId);
+      
+      if (toDelete) {
+        // Remove the item from the backend
+        await api.post(`${api.defaults.baseURL}api/books/cart/${user.username}/remove`, {
+          order_id: toDelete.order_id,
+          book_id: toDelete.book_id
+        });
+        // Refresh the cart to ensure persistent removal
+        const updatedCart = cart.filter(item => item !== toDelete);
+
+        if (updatedCart.length===0){
+          await api.post(`${api.defaults.baseURL}api/books/cart/${user.username}/removeCart`, {
+            order_id: toDelete.order_id
+          });
+        }
+        await fetchCart();
+        // Clear bookIdInput if the removed book matches
+        if (parseInt(bookId) === parseInt(bookIdInput)) {
+          setBookIdInput(null);
+        }
+      }
+    } catch (err) {
+      setError(err.message);
+      console.error("Error removing cart item:", err);
+    }
   };
 
   const adjustQuantity = async (bookId, quantityChange) => {
-    const updatedCart = cart.map((item) => {
-      if (item.book_id === bookId) {
-        const updatedItem = { ...item, quantity: item.quantity + quantityChange };
-        const updateData = {
-          order_id: item.order_id,
-          book_id: item.book_id,
-          quantity: updatedItem.quantity,
-        };
+    try {
+      const updatedCart = cart.map((item) => {
+        if (item.book_id === bookId) {
+          const newQuantity = item.quantity + quantityChange;
+          
+          // Only update if quantity is positive
+          if (newQuantity > 0) {
+            const updateData = {
+              order_id: item.order_id,
+              book_id: item.book_id,
+              quantity: newQuantity,
+            };
 
-        api.put(`${api.defaults.baseURL}api/books/cart/${user.username}`, updateData);
-        return updatedItem;
-      }
-      return item;
-    });
-    
-    setCart(updatedCart);
-  };
-
-  const insertInCart = async (bookId) => {
-    if (cart.length === 0) {
-      const response = await api.post(`${api.defaults.baseURL}api/books/cart/${user.username}/create`, {
-        order_time: new Date().toISOString().slice(0, 19).replace("T", " "),
-        order_status: 'inCart',
-        book_id: bookId
+            // Update backend
+            api.put(`${api.defaults.baseURL}api/books/cart/${user.username}`, updateData);
+            
+            return { ...item, quantity: newQuantity };
+          }
+        }
+        return item;
       });
-      const data = await response.json();
-      setCart([...cart, data]);
-    }
-    else {
-      if (cart.find(item => item.book_id === bookId) === undefined) {
-        const response = await api.post(`${api.defaults.baseURL}api/books/cart/${user.username}/insert`, {
-          order_id: cart[0].order_id,
-          book_id: bookId,
-        });
-        const data = await response.json();
-        setCart([...cart, data]);
-      }else{
-        adjustQuantity(bookId, 1);
-      }
+
+      // Update local state
+      setCart(updatedCart);
+    } catch (err) {
+      setError(err.message);
+      console.error("Error adjusting quantity:", err);
     }
   };
 
-  // Remove item from cart
-  const removeItem = async (bookId) => {
-    const toDelete = cart.find(item => item.book_id === bookId);
-    const updatedCart = cart.filter(item =>item.book_id !== bookId);
-    api.post(`${api.defaults.baseURL}api/books/cart/${user.username}/remove`, {
-      order_id: toDelete.order_id,
-      book_id: toDelete.book_id
-    });
-    setCart(updatedCart);
-  };
+  useEffect(() => {
+    const initializeData = async () => {
+      await fetchUserInfo();
+      await fetchCart();
+    };
+    initializeData();
+  }, [fetchUserInfo, fetchCart]);
 
+  useEffect(() => {
+    if (bookIdInput) {
+      insertInCart(bookIdInput, cart);
+    }
+  }, [bookIdInput]); 
 
 
   return (

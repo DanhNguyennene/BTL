@@ -639,7 +639,7 @@ const createOrder = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
-const insertAlreadyInCart = async (req, res) => {
+const insertNotAlreadyInCart = async (req, res) => {
     try {
         const { order_id, book_id } = req.body;
         const username = req.params.username;
@@ -652,12 +652,12 @@ const insertAlreadyInCart = async (req, res) => {
                 \`order\` o
             WHERE 
                 o.username = ? AND o.order_id = ?`,
-            [order_id, book_id, username]
+            [order_id, book_id, username,order_id]
         );
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Order not found' });
         }
-        res.status(201).json({ order_id, book_id, quantity });
+        res.status(201).json({ order_id, book_id });
     } catch (error) {
         console.error('Error in updateOrderBook:', error);
         res.status(500).json({ message: error.message });
@@ -747,13 +747,39 @@ const deleteOrderBook = async (req, res) => {
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Order not found' });
         }
+        console.log("HELLOs")
         res.status(201).json({ message: 'Order deleted successfully' });
     } catch (error) {
         console.error('Error in deleteOrderBook:', error);
         res.status(500).json({ message: error.message });
     }
 }
-
+const deleteOrder = async (req,res) => {
+    try {
+        const { order_id} = req.body;
+        const username = req.params.username;
+        const [result] = await connection.query(
+            `DELETE 
+                o
+            FROM 
+                \`order\` o
+            WHERE 
+                o.username = ?
+            AND
+                o.order_id = ? 
+            `,
+            [username,order_id]
+        );
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+        console.log("HELLOs")
+        res.status(201).json({ message: 'Order deleted successfully' });
+    } catch (error) {
+        console.error('Error in deleteOrderBook:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
 const createOrderPublisher = async (req, res) => {
     try {
         const { pu_order_status, pu_order_time, username, pu_id, books } = req.body;
@@ -1355,7 +1381,8 @@ module.exports = {
     showAllBookInCart,
     updateOrderBookQuantity,
     deleteOrderBook,
-    insertAlreadyInCart,
+    deleteOrder,
+    insertNotAlreadyInCart,
     getPublisherOrder,
     getUserInfo,
     updateOrderStatus,

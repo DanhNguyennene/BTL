@@ -88,3 +88,4 @@ INSERT INTO ORDER_PUBLISHER_BOOK (book_id, pu_order_id, quantity) VALUES
 (1, 1, 100),
 (2, 2, 50);
 
+SELECT * FROM `order_book`;

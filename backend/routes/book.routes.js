@@ -15,7 +15,8 @@ const {
     showAllBookInCart,
     updateOrderBookQuantity,
     deleteOrderBook,
-    insertAlreadyInCart,
+    deleteOrder,
+    insertNotAlreadyInCart,
     getPublisherOrders,
     getPublishers,
     createAuthor,
@@ -146,7 +147,11 @@ router.post('/cart/:username/remove', deleteOrderBook);
 // dùng để user xóa sách trong giỏ hàng
 // user dashboard
 // nút Remove
-router.post('/cart/:username/insert', insertAlreadyInCart);
+router.post('/cart/:username/removeCart', deleteOrder);
+// dùng để user xóa  giỏ hàng
+// user dashboard
+// nút Remove
+router.post('/cart/:username/insert', insertNotAlreadyInCart);
 // dùng để user thêm sách vào giỏ hàng
 // user dashboard
 // nút Add to Cart
