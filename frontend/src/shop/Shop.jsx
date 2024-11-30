@@ -4,6 +4,7 @@ import ShopFilters from './ShopFilters';
 import PopularBooks from './PopularBooks';
 import FeaturedAuthors from './FeaturedAuthors';
 import ShopGrid from '../components/shop/ShopGrid';
+import api from '../api/axios';
 
 const Shop = () => {
   const [books, setBooks] = useState([]);
@@ -22,7 +23,7 @@ const Shop = () => {
     setLoading(true);
     try {
       // Construct the query parameters based on searchType and selectedAuthor
-      let url = `http://localhost:5000/api/books/filter`;
+      let url = api.defaults.baseURL + 'api/books';
       const queryParams = [];
 
       if (searchTerm) {
@@ -40,7 +41,6 @@ const Shop = () => {
       if (queryParams.length > 0) {
         url += `?${queryParams.join('&')}`;
       }
-      console.log(url);
       const response = await fetch(url);
       const data = await response.json();
       setBooks(data);

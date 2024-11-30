@@ -90,6 +90,7 @@ CREATE TABLE ORDER_BOOK (
     order_id INT,
     book_id INT,
     quantity INT,
+    in_cart BOOL DEFAULT TRUE,
     PRIMARY KEY (order_id, book_id),
     FOREIGN KEY (order_id) REFERENCES `ORDER`(order_id)
  ON UPDATE CASCADE

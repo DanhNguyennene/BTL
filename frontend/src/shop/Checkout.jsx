@@ -1,46 +1,77 @@
 import React, { useContext, useState, useEffect } from "react";
-import { GlobalContext } from "../contexts/GlobalContext";
+// import { GlobalContext } from "../contexts/GlobalContext";
 import { useNavigate } from "react-router-dom";
-
+import api from "../api/axios";
 export default function Checkout() {
   // Current books in the cart
-  const { cart, resetCart } = useContext(GlobalContext);
-
+  // const { cart, resetCart } = useContext(GlobalContext);
+  const [cart, setCart] = useState([]);
   // User information
   const [userInfo, setUserInfo] = useState({});
   const user = JSON.parse(localStorage.getItem("user"));
-
   useEffect(() => {
-    fetch(`http://localhost:5000/api/users/${user.username}`)
-      .then((res) => res.json())
-      .then((data) => setUserInfo(data));
-  }, [user.username]);
+    const fetchData = async () => {
+      await getUserInfo();  // Wait for getUserInfo to complete first
+      await getCart();       // Then get the cart after the user info is fetched
+    };
+  
+    fetchData();
+  }, []);
 
   // Navigation
   const navigate = useNavigate();
+  const Cart_url = api.defaults.baseURL + "api/books/" + `cart`;
 
-  const processPayment = () => {
-    // Payment information
-    const information = {
-      order_time: new Date().toISOString().slice(0, 19).replace("T", " "),
-      order_status: "pending",
-      username: user.username,
-      books: cart,
-    };
+  const getUserInfo = async () => {
+    const response = await fetch(`${api.defaults.baseURL}api/users/${user.username}`);
+    const data = await response.json();
+    setUserInfo(data);
+    return data;
+  };
+  const getCart = async () => {
+    let url = Cart_url + "/" + user.username;
+    const response = await fetch(url);
+    console.log("Getting cart");
+    const data = await response.json();
+    setCart(data);
+    console.log(data);
+    return data;
+  };
 
-    // Submit order
-    fetch("http://localhost:5000/api/books/order", {
+  const adjustQuantity = async (bookId, quantityChange) => {
+    const updatedCart = cart.map((item) => {
+      if (item.book_id === bookId) {
+        const updatedItem = { ...item, quantity: item.quantity + quantityChange };
+        const updateData = {
+          order_id: item.order_id,
+          book_id: item.book_id,
+          quantity: updatedItem.quantity,
+        };
+
+        api.put(Cart_url, updateData);
+        return updatedItem;
+      }
+      return item;
+    });
+    
+    setCart(updatedCart);
+  };
+
+
+
+  // Remove item from cart
+  const removeItem = async (bookId) => {
+    const updatedCart = cart.filter(item => item.book_id !== bookId);
+    setCart(updatedCart);
+
+    // Optionally update the server to remove the item (if applicable)
+    await fetch(`${api.defaults.baseURL}api/books/cart/${user.username}/remove`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(information),
-    })
-      .then(() => {
-        resetCart(); // Clear the cart
-        navigate(`/${user.username}/customer-dashboard`); // Redirect to dashboard
-      })
-      .catch((err) => console.error("Error processing payment:", err));
+      body: JSON.stringify({ bookId }),
+    });
   };
 
   return (
@@ -72,6 +103,32 @@ export default function Checkout() {
                     ${item.price}
                   </p>
                 </div>
+
+                {/* Quantity Adjustments */}
+                <div className="flex items-center space-x-2">
+                  <button 
+                    className="px-2 py-1 text-sm bg-gray-200 rounded-md hover:bg-gray-300"
+                    onClick={() => adjustQuantity(item.book_id, -1)}
+                    disabled={item.quantity <= 0}
+                  >
+                    -
+                  </button>
+                  <span>{item.quantity}</span>
+                  <button 
+                    className="px-2 py-1 text-sm bg-gray-200 rounded-md hover:bg-gray-300"
+                    onClick={() => adjustQuantity(item.book_id, 1)}
+                  >
+                    +
+                  </button>
+                </div>
+
+                {/* Remove Item */}
+                <button
+                  className="ml-4 text-red-500 hover:text-red-700"
+                  onClick={() => removeItem(item.book_id)}
+                >
+                  Remove
+                </button>
               </div>
             ))}
           </div>
@@ -100,7 +157,7 @@ export default function Checkout() {
           </p>
         </div>
         <button
-          onClick={processPayment}
+          // onClick={processPayment}
           className="mt-6 w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition"
         >
           Pay Now

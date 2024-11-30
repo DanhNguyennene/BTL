@@ -622,7 +622,57 @@ const createOrder = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+const showAllBookInCart = async (req, res) => {
+    try {
+        const { username } = req.params;
+        // find order where username = username
+        // join with order_book table to get books in each order
+        // and then join the book_id with book table to get book title
+        const [rows] = await connection.query(
+            `SELECT 
+                \`order\`.*,
+                order_book.*,
+                book.book_id,
+                book.title,
+                book.price, 
+                book.author_id,
+                book.pu_id,
+                book.imageURL
+            FROM 
+                \`order\`
+            JOIN 
+                order_book ON \`order\`.order_id = order_book.order_id
+            JOIN 
+                book ON order_book.book_id = book.book_id
+            WHERE 
+                \`order\`.username = ? 
+            AND
+                order_book.in_cart IS TRUE;
+        ` , [username]
+        );
+        res.json(rows);
+    } catch (error) {
+        console.error('Error in getOrder:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+const updateOrderBookQuantity = async (req, res) => {
+    try {
+        const { order_id, book_id, quantity } = req.body;
 
+        const [result] = await connection.query(
+            `UPDATE order_book SET quantity = ? WHERE order_id = ? AND book_id = ?`,
+            [quantity, order_id, book_id]
+        );
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+        res.json({ order_id, book_id, quantity });
+    } catch (error) {
+        console.error('Error in updateOrderBook:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
 const createOrderPublisher = async (req, res) => {
     try {
         const { pu_order_status, pu_order_time, username, pu_id, books } = req.body;
@@ -699,6 +749,8 @@ module.exports = {
     updatePublisherOrderStatus,
     createOrderPublisher,
     getOrder,
+    showAllBookInCart,
+    updateOrderBookQuantity,
     getPublisherOrder,
     getUserInfo,
     updateOrderStatus

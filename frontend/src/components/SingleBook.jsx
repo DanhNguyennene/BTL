@@ -3,6 +3,7 @@ import { useLoaderData, useNavigate } from 'react-router-dom'
 import { FiDollarSign, FiBook, FiUser, FiTag } from 'react-icons/fi';
 import { FaBook } from "react-icons/fa6";
 import { useAuth } from '../contexts/AuthContext';
+// import {getCart} from '../shop/Checkout';
 import { GlobalContext } from '../contexts/GlobalContext';
 
 const BookDetail = ({ label, icon: Icon, value, className = '' }) => (
@@ -60,7 +61,6 @@ const SingleBook = () => {
       return;
     }
     // Purchase logic here
-    // set 
     updateCart({
       book_id,
       title,
