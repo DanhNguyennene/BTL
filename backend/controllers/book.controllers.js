@@ -1165,6 +1165,7 @@ const getCustomerOrderLogs = async (req, res) => {
 const  getOrderStatusHistory = async (req, res) => {
     try{
         const {order_id} = req.params;
+        console.log(order_id);
         const [logs] = await connection.query(
             `
             SELECT
@@ -1179,7 +1180,7 @@ const  getOrderStatusHistory = async (req, res) => {
             LEFT JOIN USER u ON l.action_by = u.username
             WHERE l.order_id = ? AND l.action_type = 'StatusChanged'
             ORDER BY l.action_timestamp ASC 
-            `[order_id]
+            `,[order_id]
         )
         if (logs.length === 0){
             return res.status(404).json({
@@ -1202,10 +1203,6 @@ const  getOrderStatusHistory = async (req, res) => {
         })
     }
 }
-
-
-
-
 module.exports = {
     getBooks,
     getBook,
