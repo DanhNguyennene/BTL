@@ -693,10 +693,14 @@ const getUserInfo = async (req, res) => {
 
 const getEmployeeNotifications = async (req, res) => {
     try{
-        const {notifications} = await connection.query(
+        const {temp_noti} = await connection.query(
+            'SELECT * FROM notification;'
+        )
+        console.log(temp_noti);
+        const [notifications] = await connection.query(
             `
             SELECT 
-                n.* 
+                n.* ,
                 CASE
                     WHEN n.notification_type = 'LowStock' THEN
                         (SELECT title from BOOK where book_id = n.reference_id)
@@ -716,6 +720,8 @@ const getEmployeeNotifications = async (req, res) => {
                 create_at DESC
             ` 
         );
+
+        console.log(notifications)
         const groupedNotifications = notifications.reduce((acc, notification) => {
             const date = new Date(notification.create_at).toLocaleDateString();
             if (!acc[date]){
@@ -731,6 +737,7 @@ const getEmployeeNotifications = async (req, res) => {
             }
             return acc;
         }, {});
+        console.log(groupedNotifications)
 
 
         res.status(200).json({
@@ -750,10 +757,10 @@ const getEmployeeNotifications = async (req, res) => {
 
 const getEmployeeUnreadNotifications   = async (req, res) => {
     try{
-        const {notifications} = await connection.query(
+        const [notifications] = await connection.query(
             `
             SELECT 
-                n.* 
+                n.* ,
                 CASE
                     WHEN n.notification_type = 'LowStock' THEN
                         (SELECT title from BOOK where book_id = n.reference_id)
@@ -810,7 +817,7 @@ const getCustomerNotifications  = async (req, res) => {
         const [notifications] = await  connection.query(
             `
             SELECT 
-                n.*
+                n.*,
                 CASE 
                     WHEN n.notification_type IN ('NewOrder', 'StockWarning') THEN 
                         CONCAT('Order #', n.reference_id)
@@ -876,7 +883,7 @@ const getCustomerUnreadNotifications   = async (req, res) => {
         const [notifications] = await  connection.query(
             `
             SELECT 
-                n.*
+                n.*,
                 CASE 
                     WHEN n.notification_type IN ('NewOrder', 'StockWarning') THEN 
                         CONCAT('Order #', n.reference_id)
@@ -936,7 +943,7 @@ const markNotificationAsRead = async (req, res) => {
             if (!notification || !orderIds.includes(notification[0].reference_id)){
                 return res.status(403).json({
                     success: false,
-                    message: "Inside markNotificationAsRead, has no authorization to this access";
+                    message: "Inside markNotificationAsRead, has no authorization to this access"
                 });
             }
         }
@@ -980,20 +987,64 @@ const deleteNotification = async (req, res) => {
             if (!notification || !orderIds.includes(notification[0].reference_id)){
                 return res.status(403).json({
                     success: false,
-                    message: "Inside markNotificationAsRead, has no authorization to this access";
+                    message: "Inside markNotificationAsRead, has no authorization to this access"
                 });
             }
         }
         const [result] = await connection.query(
-            `DELETE FROM NOTIFICATION WHERE notification_id = ?`, []
+            `DELETE FROM NOTIFICATION WHERE notification_id = ?`, [notification_id]
         )
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Notification not found!"
+            })
+        }
+        res.status(200).json({
+            success: true,
+            message: "Notification delete succesfully!"
+        });
+
+
     }catch(error){
+        console.error("Error in deletNotification: ", error);
+        res.status(500).json({
+            success:false,
+            message: error.message
+        });
+    };
+};
 
-    }
-}
 
-
-
+// const markAllAsRead = async(req, res) => {
+//     try{
+//         const { username, user_type } = req.body;
+//         let query = `UPDATE NOTIFICATION SET is_read = true`;
+//         const params = []
+//         if (user_type === 'customer'){
+//             const [orders] = await connection.query(
+//                 `SELECT order_id FROM \`ORDER\` WHERE username = ?`,[username]
+//             );
+//             const orderIds = orders.map(order => order.order_id)
+//             if (orderIds.length > 0){
+//                 query += ` WHERE reference_id IN (?)`
+//                 params.push(orderIds);
+//             }
+//         };
+//         await connection.query(orderIds);
+//         res.status(200).json({
+//             success:true,
+//             message: "All notifications marked as read" 
+//         })
+//     }catch(error){
+//         console.error('Error in markAllAsRead: ', error);
+//         res.status(500).json({
+//             success: false,
+//             message: error.message
+//         });
+//     };
+// };
 
 // -- hàm này retrieve hết order logs với name của user, và được sắp xếp theo thứ tự. Hàm này cũng trả về thông tin employee tac động vào
 const getAllOrderLogs = async(req, res) => {
@@ -1016,12 +1067,12 @@ const getAllOrderLogs = async(req, res) => {
     }
 }
 
-
 // this function will get the logs for a specific order
 const getOrderLogs = async (req, res) => {
     try{
         const {order_id} = req.params;
-        const {logs} = await connection.query(
+        console.log(order_id)
+        const [logs] = await connection.query(
             `
             SELECT 
                 l.*,
@@ -1056,15 +1107,16 @@ const getOrderLogs = async (req, res) => {
 const getCustomerOrderLogs = async (req, res) => {
     try{
         const {username} = req.params;
-        const {logs} = await connection.query(
-            `SELECT 
+        const [logs] = await connection.query(
+            `
+            SELECT 
                 l.*,
                 u.name as action_by_name,
                 o.order_status as current_status
             FROM ORDER_ACTION_LOG l
             JOIN \`ORDER\` o ON  l.order_id = o.order_id
             LEFT JOIN USER u on l.action_by = u.username
-            WHERE o.username = ?,
+            WHERE o.username = ?
             ORDER BY l.action_timestamp DESC  
             `, [username]
         )
@@ -1110,11 +1162,10 @@ const getCustomerOrderLogs = async (req, res) => {
     }
 }
 
-
 const  getOrderStatusHistory = async (req, res) => {
     try{
         const {order_id} = req.params;
-        const {logs} = await connection.query(
+        const [logs] = await connection.query(
             `
             SELECT
                 l.log_id,
@@ -1152,7 +1203,6 @@ const  getOrderStatusHistory = async (req, res) => {
     }
 }
 
- 
 
 
 
@@ -1190,15 +1240,14 @@ module.exports = {
     getPublisherOrder,
     getUserInfo,
     updateOrderStatus,
-
-
-    getNotifications,
-    getUnreadNotifications,
-    markNotificationAsRead,
     deleteNotification,
-    getNotificationCount,
     getAllOrderLogs,
     getOrderLogs,
     getCustomerOrderLogs,
-    getOrderStatusHistory
+    getOrderStatusHistory,
+    getEmployeeNotifications,
+    getEmployeeUnreadNotifications,
+    getCustomerNotifications,
+    getCustomerUnreadNotifications,
+    markNotificationAsRead
 };

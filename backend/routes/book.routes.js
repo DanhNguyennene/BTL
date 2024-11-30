@@ -30,20 +30,22 @@ const {
     getPublisherOrder,
     updateOrderStatus,
     updatePublisherOrderStatus,
-
-
-
-
-
     getAllOrderLogs,
     getOrderLogs,
     getCustomerOrderLogs,
-    getOrderStatusHistory
+    getOrderStatusHistory,
+    getEmployeeNotifications,
+    getEmployeeUnreadNotifications,
+    getCustomerNotifications,
+    getCustomerUnreadNotifications,
+    markNotificationAsRead,
+    deleteNotification
 
 } = require('../controllers/book.controllers');
 router.get('/', getBooks);
 router.get('/filter', filterBooks);
 router.get('/authors', getAuthors);
+
 router.get('/genres', getGenres);
 router.get('/publishers', getPublishers);
 router.get('/orders', getOrders);
@@ -51,13 +53,11 @@ router.get('/order_publisher', getPublisherOrders);
 router.get('/search', searchBookTitles);
 router.get('/order_publisher/:employeeUsername', getPublisherOrder);
 
-// TODO:
-// dùng để employee xem tất cả orders của user
-// employee dashboard
+
 router.get('/order/:username', getOrder); // xong
 
 
-router.get('/:book_id', getBook);
+
 
 // dung de user xem các order của mình
 // user dashboard
@@ -147,8 +147,22 @@ router.get('/order-logs/customer/:username', getCustomerOrderLogs);
 router.get('/order-logs/status-history/:order_id', getOrderStatusHistory);
 
 
+// employee notification route
+router.get('/notifications/employee', getEmployeeNotifications);
+router.get('/notifications/employee/unread', getEmployeeUnreadNotifications);
+
+// customer notification route
+router.get('/notifications/customer/:username', getCustomerNotifications);
+router.get('/notifications/customer/:username/unread', getCustomerUnreadNotifications);
+
+
+// common routes
+router.patch('/notifications/:notification_id/read', markNotificationAsRead);
+router.delete('/notifications/:notification_id', deleteNotification);
 
 
 
 
+
+router.get('/:book_id', getBook);
 module.exports = router;
