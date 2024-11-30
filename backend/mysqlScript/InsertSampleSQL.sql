@@ -73,7 +73,7 @@ INSERT INTO `ORDER` (order_time, order_status, username) VALUES
 
 INSERT INTO ORDER_BOOK (order_id, book_id, quantity,in_cart) VALUES
 (1, 1, 1,true),
-(1,2,3,true),
+(1,2,3,true), 
 (1,3,3,true),
 (1,4,3,true),
 (2, 2, 2,true),

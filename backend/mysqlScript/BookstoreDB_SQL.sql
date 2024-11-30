@@ -79,7 +79,7 @@
     CREATE TABLE `ORDER` (
         order_id INT PRIMARY KEY AUTO_INCREMENT,
         order_time DATETIME,
-        order_status ENUM('Pending', 'Processing', 'Completed', 'Cancelled', 'Failed'),
+        order_status ENUM('inCart','Pending', 'Processing', 'Completed', 'Cancelled', 'Failed'),
         username VARCHAR(50),
         FOREIGN KEY (username) REFERENCES CUSTOMER(username)
         ON UPDATE CASCADE
@@ -89,7 +89,7 @@
     CREATE TABLE ORDER_BOOK (
         order_id INT,
         book_id INT,
-        quantity INT,
+        quantity INT DEFAULT 1,
         in_cart BOOL DEFAULT TRUE,
         PRIMARY KEY (order_id, book_id),
         FOREIGN KEY (order_id) REFERENCES `ORDER`(order_id)

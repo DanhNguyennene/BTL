@@ -620,7 +620,8 @@ const createBookGenre = async (req, res) => {
 
 const createOrder = async (req, res) => {
     try {
-        const { order_time, order_status, username, books } = req.body;
+        const { order_time, order_status, books } = req.body;
+        const username = req.params.username;
         const [result] = await connection.query(
             `INSERT INTO \`order\` (order_time, order_status, username) VALUES (?, ?, ?)`,
             [order_time, order_status, username]
@@ -638,6 +639,30 @@ const createOrder = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+const insertAlreadyInCart = async (req, res) => {
+    try {
+        const { order_id, book_id } = req.body;
+        const username = req.params.username;
+        const [result] = await connection.query(
+            `INSERT INTO 
+                order_book (order_id, book_id)
+            SELECT 
+                ?, ?
+            FROM 
+                \`order\` o
+            WHERE 
+                o.username = ? AND o.order_id = ?`,
+            [order_id, book_id, username]
+        );
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+        res.status(201).json({ order_id, book_id, quantity });
+    } catch (error) {
+        console.error('Error in updateOrderBook:', error);
+        res.status(500).json({ message: error.message });
+    }
+} 
 const showAllBookInCart = async (req, res) => {
     try {
         const { username } = req.params;
@@ -666,7 +691,7 @@ const showAllBookInCart = async (req, res) => {
                 order_book.in_cart IS TRUE;
         ` , [username]
         );
-        res.json(rows);
+        res.status(201).json(rows);
     } catch (error) {
         console.error('Error in getOrder:', error);
         res.status(500).json({ message: error.message });
@@ -675,20 +700,60 @@ const showAllBookInCart = async (req, res) => {
 const updateOrderBookQuantity = async (req, res) => {
     try {
         const { order_id, book_id, quantity } = req.body;
-
+        const username = req.params.username;
         const [result] = await connection.query(
-            `UPDATE order_book SET quantity = ? WHERE order_id = ? AND book_id = ?`,
-            [quantity, order_id, book_id]
+            `UPDATE 
+                order_book ob
+            JOIN 
+                \`order\` o ON o.order_id = ob.order_id
+            SET 
+                ob.quantity = ?
+            WHERE 
+                o.username = ?
+            AND 
+                ob.order_id = ?
+            AND 
+                ob.book_id = ?`,
+            [quantity,username, order_id, book_id]
         );
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Order not found' });
         }
-        res.json({ order_id, book_id, quantity });
+        res.status(201).json({ order_id, book_id, quantity });
     } catch (error) {
         console.error('Error in updateOrderBook:', error);
         res.status(500).json({ message: error.message });
     }
 }
+const deleteOrderBook = async (req, res) => {
+    try {
+        const { order_id, book_id } = req.body;
+        const username = req.params.username;
+        const [result] = await connection.query(
+            `DELETE 
+                ob
+            FROM 
+                order_book ob
+            JOIN
+                \`order\` o ON o.order_id = ob.order_id
+            WHERE 
+                o.username = ?
+            AND
+                ob.order_id = ? 
+            AND 
+                ob.book_id = ?`,
+            [username,order_id, book_id]
+        );
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+        res.status(201).json({ message: 'Order deleted successfully' });
+    } catch (error) {
+        console.error('Error in deleteOrderBook:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+
 const createOrderPublisher = async (req, res) => {
     try {
         const { pu_order_status, pu_order_time, username, pu_id, books } = req.body;
@@ -986,7 +1051,7 @@ const markNotificationAsRead = async (req, res) => {
             if (!notification || !orderIds.includes(notification[0].reference_id)){
                 return res.status(403).json({
                     success: false,
-                    message: "Inside markNotificationAsRead, has no authorization to this access";
+                    message: "Inside markNotificationAsRead, has no authorization to this access"
                 });
             }
         }
@@ -1030,7 +1095,7 @@ const deleteNotification = async (req, res) => {
             if (!notification || !orderIds.includes(notification[0].reference_id)){
                 return res.status(403).json({
                     success: false,
-                    message: "Inside markNotificationAsRead, has no authorization to this access";
+                    message: "Inside markNotificationAsRead, has no authorization to this access"
                 });
             }
         }
@@ -1239,16 +1304,17 @@ module.exports = {
     getOrder,
     showAllBookInCart,
     updateOrderBookQuantity,
+    deleteOrderBook,
+    insertAlreadyInCart,
     getPublisherOrder,
     getUserInfo,
     updateOrderStatus,
 
-
-    getNotifications,
-    getUnreadNotifications,
+    // getNotifications,
+    // getUnreadNotifications,
     markNotificationAsRead,
     deleteNotification,
-    getNotificationCount,
+    // getNotificationCount,
     getAllOrderLogs,
     getOrderLogs,
     getCustomerOrderLogs,

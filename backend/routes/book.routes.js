@@ -14,6 +14,8 @@ const {
     getOrders,
     showAllBookInCart,
     updateOrderBookQuantity,
+    deleteOrderBook,
+    insertAlreadyInCart,
     getPublisherOrders,
     getPublishers,
     createAuthor,
@@ -32,7 +34,7 @@ const {
     getPublisherOrder,
     updateOrderStatus,
     updatePublisherOrderStatus,
-
+    
 
 
 
@@ -123,7 +125,7 @@ router.post('/book_genre', createBookGenre);
 
 
 
-router.post('/order', createOrder);
+router.post('/cart/:username/create', createOrder);
 // dùng để user tạo order mới
 // sẽ update cho order_book table vì mỗi order sẽ có nhiều sách
 // nút Purchase
@@ -131,7 +133,18 @@ router.get('/cart/:username', showAllBookInCart);
 // dùng để user xem các sách trong giỏ hàng của mình
 // user dashboard
 // nút View Cart
-router.put('/cart', updateOrderBookQuantity);
+router.put('/cart/:username', updateOrderBookQuantity);
+// dùng để user cập nhật số lượng sách trong giỏ hàng
+// user dashboard
+// nút Update Cart
+router.post('/cart/:username/remove', deleteOrderBook);
+// dùng để user xóa sách trong giỏ hàng
+// user dashboard
+// nút Remove
+router.post('/cart/:username/insert', insertAlreadyInCart);
+// dùng để user thêm sách vào giỏ hàng
+// user dashboard
+// nút Add to Cart
 
 
 router.post('/order_publisher', createOrderPublisher);
