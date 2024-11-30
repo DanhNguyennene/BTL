@@ -31,6 +31,15 @@ const {
     updateOrderStatus,
     updatePublisherOrderStatus,
 
+
+
+
+
+    getAllOrderLogs,
+    getOrderLogs,
+    getCustomerOrderLogs,
+    getOrderStatusHistory
+
 } = require('../controllers/book.controllers');
 router.get('/', getBooks);
 router.get('/filter', filterBooks);
@@ -75,7 +84,7 @@ router.put('/author/:author_id', updateAuthor); //xong
 // employee dashboard
 router.delete('/author/:author_id', deleteAuthor); //xong
 // dùng để admin xóa author
-
+        
 router.patch('/order/:order_id/status', updateOrderStatus);
 router.patch('/pubisher-order/:pu_order_id/status',updatePublisherOrderStatus)
 
@@ -122,9 +131,24 @@ router.post('/order_publisher', createOrderPublisher);
 // employee dashboard
 
 router.patch('/:book_id', updateBook);
-// tạm thời chưa có update author và publisher cho đỡ phức tạp 👍
 router.delete('/:book_id', deleteBook);
 router.delete('/', deleteAllBooks);
+
+
+
+
+      
+
+
+
+router.get('/order-logs', getAllOrderLogs);
+router.get('/order-logs/order/:order_id', getOrderLogs);
+router.get('/order-logs/customer/:username', getCustomerOrderLogs);
+router.get('/order-logs/status-history/:order_id', getOrderStatusHistory);
+
+
+
+
 
 
 module.exports = router;
