@@ -58,5 +58,25 @@ GROUP BY
 -- LEFT JOIN EMPLOYEE e ON u.username = e.username
 -- WHERE u.username = 'janeSmith';
 
-
+SELECT 
+	`order`.*,
+	order_book.*,
+	book.book_id,
+	book.title,
+	book.price, 
+	book.author_id,
+	book.pu_id,
+	book.imageURL
+FROM 
+	`order`
+JOIN 
+	order_book ON `order`.order_id = order_book.order_id
+JOIN 
+	book ON order_book.book_id = book.book_id
+WHERE 
+	`order`.username = 'johnDoe'
+AND
+	order_book.in_cart = TRUE;
+    
+    
 SELECT * FROM order WHERE username = 'johnDoe';

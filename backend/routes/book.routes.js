@@ -12,6 +12,11 @@ const {
     getAuthors,
     getGenres,
     getOrders,
+    showAllBookInCart,
+    updateOrderBookQuantity,
+    deleteOrderBook,
+    deleteOrder,
+    insertNotAlreadyInCart,
     getPublisherOrders,
     getPublishers,
     createAuthor,
@@ -30,6 +35,11 @@ const {
     getPublisherOrder,
     updateOrderStatus,
     updatePublisherOrderStatus,
+    
+
+
+
+
     getAllOrderLogs,
     getOrderLogs,
     getCustomerOrderLogs,
@@ -85,7 +95,7 @@ router.put('/author/:author_id', updateAuthor); //xong
 router.delete('/author/:author_id', deleteAuthor); //xong
 // dùng để admin xóa author
         
-router.patch('/order/:order_id/status', updateOrderStatus);
+router.patch('/order/:username/:order_id/status', updateOrderStatus);
 router.patch('/pubisher-order/:pu_order_id/status',updatePublisherOrderStatus)
 
 
@@ -121,10 +131,32 @@ router.post('/book_genre', createBookGenre);
 
 
 
-router.post('/order', createOrder);
+router.post('/cart/:username/create', createOrder);
 // dùng để user tạo order mới
 // sẽ update cho order_book table vì mỗi order sẽ có nhiều sách
 // nút Purchase
+router.get('/cart/:username', showAllBookInCart);
+// dùng để user xem các sách trong giỏ hàng của mình
+// user dashboard
+// nút View Cart
+router.put('/cart/:username', updateOrderBookQuantity);
+// dùng để user cập nhật số lượng sách trong giỏ hàng
+// user dashboard
+// nút Update Cart
+router.post('/cart/:username/remove', deleteOrderBook);
+// dùng để user xóa sách trong giỏ hàng
+// user dashboard
+// nút Remove
+router.post('/cart/:username/removeCart', deleteOrder);
+// dùng để user xóa  giỏ hàng
+// user dashboard
+// nút Remove
+router.post('/cart/:username/insert', insertNotAlreadyInCart);
+// dùng để user thêm sách vào giỏ hàng
+// user dashboard
+// nút Add to Cart
+
+
 router.post('/order_publisher', createOrderPublisher);
 // dùng để employee tạo order đến publisher
 // sẽ update cho order_publisher_book table vì mỗi order sẽ có nhiều sách

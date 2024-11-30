@@ -9,11 +9,11 @@ import { GlobalProvider } from './contexts/GlobalContext.jsx';
 import router from './routers/router.jsx'
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
+  // <StrictMode>
     <AuthProvider>
       <GlobalProvider>
         <RouterProvider router={router} />
       </GlobalProvider>
     </AuthProvider>
-  </StrictMode>,
+  // </StrictMode>,
 )

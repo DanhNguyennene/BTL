@@ -3,8 +3,8 @@ import { useLoaderData, useNavigate } from 'react-router-dom'
 import { FiDollarSign, FiBook, FiUser, FiTag } from 'react-icons/fi';
 import { FaBook } from "react-icons/fa6";
 import { useAuth } from '../contexts/AuthContext';
+// import {getCart} from '../shop/Checkout';
 import { GlobalContext } from '../contexts/GlobalContext';
-
 const BookDetail = ({ label, icon: Icon, value, className = '' }) => (
   <div className='flex items-center space-x-3 text-gray-700'>
     <Icon className="w-5 h-5 text-blue-600" />
@@ -43,14 +43,16 @@ const SingleBook = () => {
       return;
     }
     // Add to cart logic here
-    updateCart({
-      book_id,
-      title,
-      authorName,
-      imageURL,
-      price,
-      publisherName
-    });
+    // updateCart({
+    //   book_id,
+    //   title,
+    //   authorName,
+    //   imageURL,
+    //   price,
+    //   publisherName
+    // });
+    const username = userInfo.username;  
+    navigate(`/${username}/cart?bookId=${book_id}`);
     console.log(cart);
   };
 
@@ -60,7 +62,6 @@ const SingleBook = () => {
       return;
     }
     // Purchase logic here
-    // set 
     updateCart({
       book_id,
       title,

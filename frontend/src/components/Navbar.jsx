@@ -19,7 +19,6 @@ const Navbar = () => {
   };
 
 
-
   // Nav Items
   const navItems = [
     { link: "Home", path: isAuthenticated? `/${userInfo.username}/` : '/' },
