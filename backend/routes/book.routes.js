@@ -95,7 +95,7 @@ router.put('/author/:author_id', updateAuthor); //xong
 router.delete('/author/:author_id', deleteAuthor); //xong
 // dùng để admin xóa author
         
-router.patch('/order/:order_id/status', updateOrderStatus);
+router.patch('/order/:username/:order_id/status', updateOrderStatus);
 router.patch('/pubisher-order/:pu_order_id/status',updatePublisherOrderStatus)
 
 

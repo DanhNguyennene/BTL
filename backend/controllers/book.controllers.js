@@ -322,9 +322,9 @@ const getOrder = async (req, res) => {
 
 const updateOrderStatus = async(req, res) => {
     try{
-        const{order_id} = req.params;
+        const{username,order_id} = req.params;
         const {order_status} = req.body;
-        const validStatuses = ['Pending', 'Processing', 'Completed', 'Cancelled', 'Failed'];
+        const validStatuses = ['inCart','Pending', 'Processing', 'Completed', 'Cancelled', 'Failed'];
         if(!validStatuses.includes(order_status)){
             return res.status(400).json({
                 success:false,
@@ -334,8 +334,8 @@ const updateOrderStatus = async(req, res) => {
         console.log(order_id)
         console.log(order_status)
         const [result] = await connection.query(
-            `UPDATE \`order\` SET order_status = ? WHERE order_id = ?`, 
-            [order_status, order_id]
+            `UPDATE \`order\` SET order_status = ? WHERE order_id = ? AND username = ?`, 
+            [order_status, order_id,username]
         )
         if (result.affectedRows===0){
             return res.status(404).json({
@@ -780,6 +780,7 @@ const deleteOrder = async (req,res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
 const createOrderPublisher = async (req, res) => {
     try {
         const { pu_order_status, pu_order_time, username, pu_id, books } = req.body;

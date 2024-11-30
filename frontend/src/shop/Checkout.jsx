@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect,useCallback  } from "react";
 // import { GlobalContext } from "../contexts/GlobalContext";
 import { useNavigate,useLocation  } from "react-router-dom";
 import api from "../api/axios";
+import PaymentModal from "../components/Payout";
 
 export default function Checkout() {
   const [cart, setCart] = useState([]);
@@ -14,7 +15,7 @@ export default function Checkout() {
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const [bookIdInput, setBookIdInput] = useState(queryParams.get('bookId'));     
-
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const fetchUserInfo = useCallback(async () => {
     try {
       const response = await fetch(`${api.defaults.baseURL}api/users/${user.username}`);
@@ -31,6 +32,7 @@ export default function Checkout() {
     try {
       const response = await api.get(`${api.defaults.baseURL}api/books/cart/${user.username}`);
       setCart(response.data);
+      console.log()
       return response.data;
     } catch (err) {
       setError(err.message);
@@ -140,7 +142,19 @@ export default function Checkout() {
       console.error("Error adjusting quantity:", err);
     }
   };
-
+  const handlePaymentSuccess = async () => {
+    try {
+      console.log('Payment successful');
+      const order_id = cart[0].order_id;  
+      await api.patch(`${api.defaults.baseURL}api/books/order/${userInfo.username}/${order_id}/status`,
+        { order_status: 'Pending' }
+      );
+      
+      navigate(`/${userInfo.username}/customer-dashboard`);
+    } catch (err) {
+      console.error('Error clearing cart:', err);
+    }
+  };
   useEffect(() => {
     const initializeData = async () => {
       await fetchUserInfo();
@@ -241,11 +255,22 @@ export default function Checkout() {
           </p>
         </div>
         <button
-          // onClick={processPayment}
+          onClick={() => setIsPaymentModalOpen(true)}
           className="mt-6 w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition"
+          disabled={cart.length === 0}
         >
           Pay Now
         </button>
+      <PaymentModal 
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        total={cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)}
+        userInfo={userInfo}
+        cart={cart}
+        onPaymentSuccess={
+          handlePaymentSuccess
+        }
+      />
       </div>
     </div>
   );
