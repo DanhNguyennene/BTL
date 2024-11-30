@@ -1,12 +1,12 @@
 USE ebookstoredb;
 
 INSERT INTO USER(username, name, phone_number, email, password) VALUES
-('johnDoe', 'John Doe', '+43 1 716130', 'john.doe@gmail.com', 'pass123'),
-('janeSmith', 'Jane Smith', '+43 1 123456', 'jane.smith@gmail.com', 'pass123'),
-('robertBrown', 'Robert Brown', '+32 2 287 62 11', 'james.bon@gmail.com', 'pass123'),
-('lisaJones', 'Lisa Jones', '+15559870123', 'lisa.blue@gmail.com', 'pass123'),
-('employee1', 'David Lee', '+15551112222', 'david.lee@ebookstore.com', 'pass123'),
-('employee2', 'Maria Garcia', '+15554445555', 'maria.garcia@ebookstore.com', 'emp_pass2'),
+('johnDoe', 'John Doe', '+43 1 716130', 'john.doe@gmail.com', 'Aa@12345'),
+('janeSmith', 'Jane Smith', '+43 1 123456', 'jane.smith@gmail.com', 'Aa@12345'),
+('robertBrown', 'Robert Brown', '+32 2 287 62 11', 'james.bon@gmail.com', 'Aa@12345'),
+('lisaJones', 'Lisa Jones', '+15559870123', 'lisa.blue@gmail.com', 'Aa@12345'),
+('employee1', 'David Lee', '+15551112222', 'david.lee@ebookstore.com', 'Aa@12345'),
+('employee2', 'Maria Garcia', '+15554445555', 'maria.garcia@ebookstore.com', 'Aa@12345'),
 ('employee3', 'TinhAnhAdmin', '+15554445555', 'maria.garcia@ebookstore.com', 'Aa@12345'),
 ('TinhAnhNeNe', 'TinhAnhAdmin', '+15554445555', 'maria.garcia@ebookstore.com', 'Aa@12345');
 
@@ -71,14 +71,14 @@ INSERT INTO `ORDER` (order_time, order_status, username) VALUES
 ('2024-10-05 14:00:00', 'Pending', 'robertBrown'),
 ('2024-10-06 16:30:00', 'Pending', 'lisaJones');
 
-INSERT INTO ORDER_BOOK (order_id, book_id, quantity) VALUES
-(1, 1, 1),
-(1,2,3),
-(1,3,3),
-(1,4,3),
-(2, 2, 2),
-(3, 3, 1),
-(4, 4, 1);
+INSERT INTO ORDER_BOOK (order_id, book_id, quantity,in_cart) VALUES
+(1, 1, 1,true),
+(1,2,3,true), 
+(1,3,3,true),
+(1,4,3,true),
+(2, 2, 2,true),
+(3, 3, 1,true),
+(4, 4, 1,true);
 
 INSERT INTO ORDER_PUBLISHER (pu_order_status, pu_order_time, username, pu_id) VALUES
 ('Pending', '2024-10-01', 'employee1', 1),
@@ -88,3 +88,4 @@ INSERT INTO ORDER_PUBLISHER_BOOK (book_id, pu_order_id, quantity) VALUES
 (1, 1, 100),
 (2, 2, 50);
 
+SELECT * FROM `order_book`;

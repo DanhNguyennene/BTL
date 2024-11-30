@@ -322,9 +322,9 @@ const getOrder = async (req, res) => {
 
 const updateOrderStatus = async(req, res) => {
     try{
-        const{order_id} = req.params;
+        const{username,order_id} = req.params;
         const {order_status} = req.body;
-        const validStatuses = ['Pending', 'Processing', 'Completed', 'Cancelled', 'Failed'];
+        const validStatuses = ['inCart','Pending', 'Processing', 'Completed', 'Cancelled', 'Failed'];
         if(!validStatuses.includes(order_status)){
             return res.status(400).json({
                 success:false,
@@ -334,8 +334,8 @@ const updateOrderStatus = async(req, res) => {
         console.log(order_id)
         console.log(order_status)
         const [result] = await connection.query(
-            `UPDATE \`order\` SET order_status = ? WHERE order_id = ?`, 
-            [order_status, order_id]
+            `UPDATE \`order\` SET order_status = ? WHERE order_id = ? AND username = ?`, 
+            [order_status, order_id,username]
         )
         if (result.affectedRows===0){
             return res.status(404).json({
@@ -620,7 +620,8 @@ const createBookGenre = async (req, res) => {
 
 const createOrder = async (req, res) => {
     try {
-        const { order_time, order_status, username, books } = req.body;
+        const { order_time, order_status, books } = req.body;
+        const username = req.params.username;
         const [result] = await connection.query(
             `INSERT INTO \`order\` (order_time, order_status, username) VALUES (?, ?, ?)`,
             [order_time, order_status, username]
@@ -635,6 +636,147 @@ const createOrder = async (req, res) => {
         res.status(201).json({ order_id, order_time, order_status, username, books });
     } catch (error) {
         console.error('Error in createOrder:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+const insertNotAlreadyInCart = async (req, res) => {
+    try {
+        const { order_id, book_id } = req.body;
+        const username = req.params.username;
+        const [result] = await connection.query(
+            `INSERT INTO 
+                order_book (order_id, book_id)
+            SELECT 
+                ?, ?
+            FROM 
+                \`order\` o
+            WHERE 
+                o.username = ? AND o.order_id = ?`,
+            [order_id, book_id, username,order_id]
+        );
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+        res.status(201).json({ order_id, book_id });
+    } catch (error) {
+        console.error('Error in updateOrderBook:', error);
+        res.status(500).json({ message: error.message });
+    }
+} 
+const showAllBookInCart = async (req, res) => {
+    try {
+        const { username } = req.params;
+        // find order where username = username
+        // join with order_book table to get books in each order
+        // and then join the book_id with book table to get book title
+        const [rows] = await connection.query(
+            `SELECT 
+                \`order\`.*,
+                order_book.*,
+                book.book_id,
+                book.title,
+                book.price, 
+                book.author_id,
+                book.pu_id,
+                book.imageURL
+            FROM 
+                \`order\`
+            JOIN 
+                order_book ON \`order\`.order_id = order_book.order_id
+            JOIN 
+                book ON order_book.book_id = book.book_id
+            WHERE 
+                \`order\`.username = ? 
+            AND
+                order_book.in_cart IS TRUE;
+        ` , [username]
+        );
+        res.status(201).json(rows);
+    } catch (error) {
+        console.error('Error in getOrder:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+const updateOrderBookQuantity = async (req, res) => {
+    try {
+        const { order_id, book_id, quantity } = req.body;
+        const username = req.params.username;
+        const [result] = await connection.query(
+            `UPDATE 
+                order_book ob
+            JOIN 
+                \`order\` o ON o.order_id = ob.order_id
+            SET 
+                ob.quantity = ?
+            WHERE 
+                o.username = ?
+            AND 
+                ob.order_id = ?
+            AND 
+                ob.book_id = ?`,
+            [quantity,username, order_id, book_id]
+        );
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+        res.status(201).json({ order_id, book_id, quantity });
+    } catch (error) {
+        console.error('Error in updateOrderBook:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+const deleteOrderBook = async (req, res) => {
+    try {
+        const { order_id, book_id } = req.body;
+        const username = req.params.username;
+        const [result] = await connection.query(
+            `DELETE 
+                ob
+            FROM 
+                order_book ob
+            JOIN
+                \`order\` o ON o.order_id = ob.order_id
+            WHERE 
+                o.username = ?
+            AND
+                ob.order_id = ? 
+            AND 
+                ob.book_id = ?`,
+            [username,order_id, book_id]
+        );
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+        console.log("HELLOs")
+        res.status(201).json({ message: 'Order deleted successfully' });
+    } catch (error) {
+        console.error('Error in deleteOrderBook:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+const deleteOrder = async (req,res) => {
+    try {
+        const { order_id} = req.body;
+        const username = req.params.username;
+        const [result] = await connection.query(
+            `DELETE 
+                o
+            FROM 
+                \`order\` o
+            WHERE 
+                o.username = ?
+            AND
+                o.order_id = ? 
+            `,
+            [username,order_id]
+        );
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+        console.log("HELLOs")
+        res.status(201).json({ message: 'Order deleted successfully' });
+    } catch (error) {
+        console.error('Error in deleteOrderBook:', error);
         res.status(500).json({ message: error.message });
     }
 }
@@ -1237,10 +1379,20 @@ module.exports = {
     updatePublisherOrderStatus,
     createOrderPublisher,
     getOrder,
+    showAllBookInCart,
+    updateOrderBookQuantity,
+    deleteOrderBook,
+    deleteOrder,
+    insertNotAlreadyInCart,
     getPublisherOrder,
     getUserInfo,
     updateOrderStatus,
+
+    // getNotifications,
+    // getUnreadNotifications,
+    markNotificationAsRead,
     deleteNotification,
+    // getNotificationCount,
     getAllOrderLogs,
     getOrderLogs,
     getCustomerOrderLogs,

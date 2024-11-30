@@ -77,28 +77,29 @@ CREATE TABLE BOOK_GENRE (
 		ON DELETE CASCADE
 );
 
-CREATE TABLE `ORDER` (
-    order_id INT PRIMARY KEY AUTO_INCREMENT,
-    order_time DATETIME,
-    order_status ENUM('Pending', 'Processing', 'Completed', 'Cancelled', 'Failed'),
-    username VARCHAR(50),
-    FOREIGN KEY (username) REFERENCES CUSTOMER(username)
-	ON UPDATE CASCADE
-    ON DELETE CASCADE
-);
+    CREATE TABLE `ORDER` (
+        order_id INT PRIMARY KEY AUTO_INCREMENT,
+        order_time DATETIME,
+        order_status ENUM('inCart','Pending', 'Processing', 'Completed', 'Cancelled', 'Failed'),
+        username VARCHAR(50),
+        FOREIGN KEY (username) REFERENCES CUSTOMER(username)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+    );
 
-CREATE TABLE ORDER_BOOK (
-    order_id INT,
-    book_id INT,
-    quantity INT,
-    PRIMARY KEY (order_id, book_id),
-    FOREIGN KEY (order_id) REFERENCES `ORDER`(order_id)
- ON UPDATE CASCADE
-    ON DELETE CASCADE,
-    FOREIGN KEY (book_id) REFERENCES BOOK(book_id)
- ON UPDATE CASCADE
-    ON DELETE CASCADE
-);
+    CREATE TABLE ORDER_BOOK (
+        order_id INT,
+        book_id INT,
+        quantity INT DEFAULT 1,
+        in_cart BOOL DEFAULT TRUE,
+        PRIMARY KEY (order_id, book_id),
+        FOREIGN KEY (order_id) REFERENCES `ORDER`(order_id)
+    ON UPDATE CASCADE
+        ON DELETE CASCADE,
+        FOREIGN KEY (book_id) REFERENCES BOOK(book_id)
+    ON UPDATE CASCADE
+        ON DELETE CASCADE
+    );
 
 CREATE TABLE ORDER_PUBLISHER (
     pu_order_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -142,8 +143,8 @@ CREATE TABLE ORDER_ACTION_LOG(
 	log_id int primary key auto_increment,
     order_id int,
     action_type ENUM('Created', 'StatusChanged', 'Cancelled') not null,
-    old_status ENUM('Pending', 'Processing', 'Completed', 'Cancelled', 'Failed'),
-    new_status ENUM('Pending', 'Processing', 'Completed', 'Cancelled', 'Failed'),
+    old_status ENUM('inCart','Pending', 'Processing', 'Completed', 'Cancelled', 'Failed'),
+    new_status ENUM('inCart','Pending', 'Processing', 'Completed', 'Cancelled', 'Failed'),
     action_by VARCHAR(50),
     action_note TEXT,
     action_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
