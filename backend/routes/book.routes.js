@@ -17,6 +17,7 @@ const {
     deleteOrderBook,
     deleteOrder,
     insertNotAlreadyInCart,
+    clearCart,
     getPublisherOrders,
     getPublishers,
     createAuthor,
@@ -95,6 +96,7 @@ router.put('/author/:author_id', updateAuthor); //xong
 router.delete('/author/:author_id', deleteAuthor); //xong
 // dùng để admin xóa author
         
+
 router.patch('/order/:username/:order_id/status', updateOrderStatus);
 router.patch('/pubisher-order/:pu_order_id/status',updatePublisherOrderStatus)
 
@@ -155,7 +157,10 @@ router.post('/cart/:username/insert', insertNotAlreadyInCart);
 // dùng để user thêm sách vào giỏ hàng
 // user dashboard
 // nút Add to Cart
-
+router.patch('/cart/:username/clearCart', clearCart);
+// dùng để user xóa toàn bộ giỏ hàng
+// user dashboard
+// nút Clear Cart
 
 router.post('/order_publisher', createOrderPublisher);
 // dùng để employee tạo order đến publisher

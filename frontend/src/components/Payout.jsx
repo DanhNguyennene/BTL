@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback,useEffect } from 'react';
 import api from "../api/axios";
 
 const PaymentModal = ({ 
@@ -9,15 +9,27 @@ const PaymentModal = ({
   cart, 
   onPaymentSuccess 
 }) => {
-  const [paymentMethod, setPaymentMethod] = useState('credit');
+  const [paymentMethod, setPaymentMethod] = useState('bank');
   const [cardNumber, setCardNumber] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [cvv, setCvv] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [payPalEmail, setPayPalEmail] = useState('');
+  const [bankAccount, setBankAccount] = useState(userInfo.bank_acc);
+  const [address, setAddress] = useState(userInfo.address);
+  const [phone_number, setPhoneNumber] = useState(userInfo.phone_number);
+  useEffect(() => {
+    setBankAccount(userInfo.bank_acc);
+    setAddress(userInfo.address);
+    setPhoneNumber(userInfo.phone_number);
+    console.log("userInfo",userInfo);
 
+  }, [userInfo.bank_acc, userInfo.address, userInfo.phone_number]);
+  
   const validatePaymentDetails = () => {
     // Basic validation
+    if (paymentMethod === 'credit' || paymentMethod === 'debit') {  
     if (!cardNumber || cardNumber.length < 16) {
       setError('Invalid card number');
       return false;
@@ -30,6 +42,25 @@ const PaymentModal = ({
       setError('Invalid CVV');
       return false;
     }
+  }else if (paymentMethod === 'paypal') {
+    if (!payPalEmail || !/^\S+@\S+\.\S+$/.test(payPalEmail)) {
+      setError('Invalid PayPal email');
+      return false;
+    }
+  }else if (paymentMethod === 'bank') {
+    if (!bankAccount || bankAccount.length < 10) {
+      setError('Invalid bank account number');
+      return false;
+    }
+  }
+  if (!address) {
+    setError('Invalid address');
+    return false;
+  }
+  if (!phone_number || phone_number.length < 10) {
+    setError('Invalid phone number');
+    return false;
+  }
     return true;
   };
 
@@ -56,13 +87,13 @@ const PaymentModal = ({
         paymentMethod: paymentMethod,
         shippingAddress: userInfo.address
       };
-
       // Simulate payment processing
-      const response = await api.post(`${api.defaults.baseURL}api/orders/process`, orderDetails);
-    
+      // const response = await api.post(`${api.defaults.baseURL}api/orders/process`, orderDetails);
+    const response = {'status' : 200};
       if (response.status === 200) {
         // Payment successful
-        onPaymentSuccess(response.data);
+        onPaymentSuccess(response);
+        console.log('Payment successful');
         onClose();
       } else {
         throw new Error('Payment processing failed');
@@ -83,48 +114,94 @@ const PaymentModal = ({
         <h2 className="text-2xl font-bold mb-4 text-gray-800">Complete Payment</h2>
         
         {/* Payment Method Selection */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">Payment Method</label>
+        <div className="space-y-4">
+          <label className="mt-1 block text-sm font-bold text-gray-700 ">Payment Method</label>
           <select 
             value={paymentMethod}
             onChange={(e) => setPaymentMethod(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+            className="mt-1 block h-10 w-full rounded-md border shadow-sm"
           >
-            <option value="credit">Credit Card</option>
-            <option value="debit">Debit Card</option>
-            <option value="paypal">PayPal</option>
-          </select>
-        </div>
-
-        {/* Card Details Input */}
-        <div className="space-y-4">
-          <input 
-            type="text" 
-            placeholder="Card Number" 
-            value={cardNumber}
-            onChange={(e) => setCardNumber(e.target.value)}
-            className="w-full p-2 border rounded-md"
-            maxLength="16"
-          />
-          <div className="flex space-x-2">
+          <option value="bank">Bank Account</option>
+          <option value="cash">Cash On Delivery</option>
+          <option value="credit">Credit Card</option>
+          <option value="debit">Debit Card</option>
+          <option value="paypal">PayPal</option>
+        </select>
+      
+        {/* Conditional inputs */}
+        {paymentMethod === 'credit' || paymentMethod === 'debit' ? (
+          <div className="space-y-4">
+            <label className="block text-sm font-medium text-gray-700">Card Number</label>
             <input 
               type="text" 
-              placeholder="MM/YY" 
-              value={expiryDate}
-              onChange={(e) => setExpiryDate(e.target.value)}
-              className="w-1/2 p-2 border rounded-md"
-              maxLength="5"
+              placeholder="Card Number" 
+              value={cardNumber}
+              onChange={(e) => setCardNumber(e.target.value)}
+              className="w-full p-2 border rounded-md"
+              maxLength="16"
             />
+            <div className="flex space-x-2">
+            <label className="block text-sm font-medium text-gray-700">Expire Date</label>
+              <input 
+                type="text" 
+                placeholder="MM/YY" 
+                value={expiryDate}
+                onChange={(e) => setExpiryDate(e.target.value)}
+                className="w-1/2 p-2 border rounded-md"
+                maxLength="5"
+              />
+            <label className="block text-sm font-medium text-gray-700">CVV</label>
+              <input 
+                type="text" 
+                placeholder="CVV" 
+                value={cvv}
+                onChange={(e) => setCvv(e.target.value)}
+                className="w-1/2 p-2 border rounded-md"
+                maxLength="4"
+              />
+            </div>
+          </div>
+        ) : paymentMethod === 'paypal' ? (
+          <div className="space-y-4">
+            <label className="block text-sm font-medium text-gray-700">PayPal Email</label>
             <input 
-              type="text" 
-              placeholder="CVV" 
-              value={cvv}
-              onChange={(e) => setCvv(e.target.value)}
-              className="w-1/2 p-2 border rounded-md"
-              maxLength="4"
+              type="email" 
+              placeholder="PayPal Email"
+              value={payPalEmail}
+              onChange={(e) => setPayPalEmail(e.target.value)}
+              className="w-full p-2 border rounded-md"
             />
           </div>
-        </div>
+        ) : paymentMethod === 'bank' ? (
+          <div className="space-y-4">
+            <label className="block text-sm font-medium text-gray-700">Bank Account Number</label>
+            <input 
+              type="text" 
+              placeholder="Bank Account Number" 
+              value={bankAccount}
+              onChange={(e) => setBankAccount(e.target.value)}
+              className="w-full p-2 border rounded-md"
+            />
+
+          </div>
+        ) : null}
+            <label className="block text-sm font-medium text-gray-700">Phone Number</label>
+            <input 
+              type="text" 
+              placeholder="Phone Number" 
+              value={phone_number}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              className="w-full p-2 border rounded-md"
+            />
+            <label className="block text-sm font-medium text-gray-700">Address</label>
+            <input 
+              type="text" 
+              placeholder="Address" 
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              className="w-full p-2 border rounded-md"
+            />
+      </div>
 
         {/* Error Message */}
         {error && (
