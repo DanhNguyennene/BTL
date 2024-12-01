@@ -1,5 +1,7 @@
 import React, {useState} from 'react'
 import { Outlet, useNavigate } from 'react-router-dom';
+import { FaShoppingBag, FaBell, FaUser, FaHome } from 'react-icons/fa';
+
 import { 
   FaBook, 
   FaShoppingCart, 
@@ -18,6 +20,7 @@ import AuthorManagement from './employeeDashboard/AuthorManagement';
 import GenreManagement from './employeeDashboard/GenreManagement';
 import PublisherManagement from './employeeDashboard/PublisherManagement';
 import CustomerOrders from './employeeDashboard/CustomerOrders';
+import EmployeeNotifications from './EmployeeNotifications';
 
 const EmployeeDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview')
@@ -29,6 +32,12 @@ const EmployeeDashboard = () => {
     { id: 'authors', name: 'Author Management', icon: <FaUserEdit /> },
     { id: 'genres', name: 'Genre Management', icon: <FaBookReader /> },
     { id: 'publishers', name: 'Publisher Management', icon: <FaBuilding /> },
+    {
+      id: 'notifications', 
+      name: 'Notifications', 
+      icon: <FaBell />,
+      description: 'Stay updated with latest alerts'
+    }
   ];
 
   const renderContent = () => {
@@ -47,6 +56,8 @@ const EmployeeDashboard = () => {
         return <GenreManagement />;
       case 'publishers':
         return <PublisherManagement />;
+      case 'notifications':
+        return <EmployeeNotifications/>
       default:
         return <DashBoardOverview />;
     }

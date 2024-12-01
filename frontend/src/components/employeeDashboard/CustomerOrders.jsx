@@ -19,7 +19,12 @@ const CustomerOrders = () => {
   const fetchOrders = async () => {
     try{
       const response = await api.get('/api/books/orders');
-      setOrders(response.data);
+      const filteredOrders = response.data.filter(
+        (order) => order.order_status !== 'inCart'
+      );
+
+      
+      setOrders(filteredOrders);
     }catch(error){
       console.error("Error fetching orders: ", error);
     }finally{

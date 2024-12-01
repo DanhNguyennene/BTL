@@ -13,7 +13,6 @@ const CustomerOrders = () => {
             return;
         }
 
-        // Fetch orders
         const fetchOrders = async () => {
             try {
                 setIsLoading(true);

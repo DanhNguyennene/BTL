@@ -4,6 +4,10 @@ import { format } from 'date-fns';
 import { FiArrowLeft, FiClock, FiUser, FiPackage } from 'react-icons/fi';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../api/axios';
+import { Toaster } from 'react-hot-toast';
+import { showSuccessNotification, showErrorNotification } from '../../util/toastNotifications';
+
+
 
 
 
@@ -45,6 +49,7 @@ const OrderDetails = () => {
     try {
       setLoading(true);
       const response = await api.get(`/api/books/order/${customerUsername}`);
+      
       setOrders(response.data);
       setNewStatus(response.data[0]?.order_status || '');
     } catch (err) {
@@ -57,14 +62,15 @@ const OrderDetails = () => {
 
   const handleStatusUpdate = async () => {
     try {
-      await api.patch(`/api/books/order/${orders[0]?.order_id}/status`, {
-        order_status: newStatus
+      await api.patch(`/api/books/order/${customerUsername}/${orders[0]?.order_id}/status`, {
+        order_status: newStatus,
       });
-      // setOrders(orders.map(order => ({...order, order_status: newStatus})));
       fetchOrderData();
       setEditingStatus(false);
+      showSuccessNotification('Order status updated successfully');
     } catch (err) {
-      console.error('Failed to update status:', err);
+      const errorMessage = err.response?.data?.message || 'Failed to update order status';
+      showErrorNotification(errorMessage+ `. All the books ordered in the ${customerUsername}'s order must be fullfiled`);
     }
   };
 
@@ -91,6 +97,7 @@ const OrderDetails = () => {
   }
 
   return (
+    
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Section */}
@@ -211,6 +218,7 @@ const OrderDetails = () => {
           </div>
         </div>
       </div>
+      <Toaster />
     </div>
   );
 };

@@ -46,7 +46,7 @@ const CustomerNotifications = () => {
   return (
     <div>
       <div className="mb-4">
-        <h2 className="text-xl font-semibold">
+        <h2 className="text-xl font-semibold mt-10">
           Notifications ({unreadCount} unread)
         </h2>
       </div>

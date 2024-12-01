@@ -11,7 +11,7 @@ const CustomerOrders = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilters] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
-  const { userInfo, isAuthenticated, isEmployee, isCustomer } = useAuth();
+  const { userInfo} = useAuth();
 
   const [showAddOrderForm, setShowAddOrderForm] = useState(false);
   const [publishers, setPublishers] = useState([]);

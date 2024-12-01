@@ -301,7 +301,12 @@ const getOrder = async (req, res) => {
             `SELECT 
                 \`order\`.*,
                 order_book.*,
-                book.*
+                book.book_id,
+                book.title,
+                book.price,
+                book.author_id,
+                book.pu_id,
+                book.imageURL
             FROM 
                 \`order\`
             JOIN 
@@ -333,6 +338,7 @@ const updateOrderStatus = async(req, res) => {
         }
         console.log(order_id)
         console.log(order_status)
+        console.log(order_status, order_id, username)
         const [result] = await connection.query(
             `UPDATE \`order\` SET order_status = ? WHERE order_id = ? AND username = ?`, 
             [order_status, order_id,username]
@@ -351,6 +357,7 @@ const updateOrderStatus = async(req, res) => {
     }catch(error){ 
         console.error('Error in updateOrderStatus:', error);
         if (error.code === 'ER_SIGNAL_EXCEPTION'){
+            console.log("Hello")
             res.status(400).json({
                 success:false,
                 message: error.sqlMessage
