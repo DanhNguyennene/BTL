@@ -1357,12 +1357,12 @@ const  getOrderStatusHistory = async (req, res) => {
             ORDER BY l.action_timestamp ASC 
             `,[order_id]
         )
-        if (logs.length === 0){
-            return res.status(404).json({
-                success: false,
-                message: 'No status change in the history found for this order'
-            });
-        }
+        // if (logs.length === 0){
+        //     return res.status(404).json({
+        //         success: false,
+        //         message: 'No status change in the history found for this order'
+        //     });
+        // }
 
         res.status(200).json({
             success:true,
