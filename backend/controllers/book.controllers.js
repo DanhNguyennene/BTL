@@ -418,7 +418,7 @@ const getPublisherOrders = async (req, res) => {
         const [rows] = await connection.query(
             `SELECT * FROM order_publisher`
         );
-        console.log("hello")
+        // console.log("hello")
         // join with order_publisher_book table to get books in each order
         console.log(rows)
         for (let i = 0; i < rows.length; i++) {
@@ -438,7 +438,7 @@ const getPublisherOrders = async (req, res) => {
         res.json(rows);
        
     } catch (error) {
-        console.log("hello")
+        // console.log("hello")
         console.error('Error in getPublisherOrders:', error);
         res.status(500).json({ message: error.message });
     }
@@ -754,7 +754,7 @@ const deleteOrderBook = async (req, res) => {
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Order not found' });
         }
-        console.log("HELLOs")
+        // console.log("HELLOs")
         res.status(201).json({ message: 'Order deleted successfully' });
     } catch (error) {
         console.error('Error in deleteOrderBook:', error);
@@ -780,7 +780,7 @@ const deleteOrder = async (req,res) => {
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Order not found' });
         }
-        console.log("HELLOs")
+        // console.log("HELLOs")
         res.status(201).json({ message: 'Order deleted successfully' });
     } catch (error) {
         console.error('Error in deleteOrderBook:', error);
@@ -819,8 +819,16 @@ const getUserInfo = async (req, res) => {
     try {
         // get user info from customer table to get bank_acc and address
         const { username } = req.params;
+        const {order_id} = req.body;
         const [rows] = await connection.query(
-            `SELECT * FROM customer WHERE username = ?`,
+            `SELECT 
+                c.username, u.name, u.phone_number, u.email, c.address, c.bank_acc, u.password
+            FROM 
+                customer c
+            JOIN
+                user u ON c.username = u.username
+            WHERE 
+                u.username = ?`,
             [username]
         );
         if (rows.length === 0) {
@@ -832,6 +840,34 @@ const getUserInfo = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+const clearCart = async (req, res) => {
+    try {
+        const { username } = req.params;
+        const {order_id} = req.body;
+        const [result] = await connection.query(
+            `UPDATE
+                order_book ob
+            JOIN
+                \`order\` o ON o.order_id = ob.order_id
+            SET
+                ob.in_cart = FALSE
+            WHERE
+                o.username = ?
+            AND
+                o.order_id = ?`,
+            [username,order_id]
+        );
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+        res.status(201).json({ message: 'Cart cleared successfully' });
+    } catch (error) {
+        console.error('Error in clearCart:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+
+
 
 
 
@@ -1388,6 +1424,7 @@ module.exports = {
     deleteOrderBook,
     deleteOrder,
     insertNotAlreadyInCart,
+    clearCart,
     getPublisherOrder,
     getUserInfo,
     updateOrderStatus,

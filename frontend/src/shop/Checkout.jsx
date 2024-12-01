@@ -149,7 +149,9 @@ export default function Checkout() {
       await api.patch(`${api.defaults.baseURL}api/books/order/${userInfo.username}/${order_id}/status`,
         { order_status: 'Pending' }
       );
-      
+      await api.patch(`${api.defaults.baseURL}api/books/cart/${userInfo.username}/clearCart`,
+        { order_id: order_id }
+      );
       navigate(`/${userInfo.username}/customer-dashboard`);
     } catch (err) {
       console.error('Error clearing cart:', err);
