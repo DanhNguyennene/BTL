@@ -62,7 +62,7 @@ router.get('/publishers', getPublishers);
 router.get('/orders', getOrders);
 router.get('/order_publisher', getPublisherOrders);
 router.get('/search', searchBookTitles);
-router.get('/order_publisher/:employeeUsername', getPublisherOrder);
+router.get('/order_publisher/:employeeUsername/:pu_order_id', getPublisherOrder);
 
 
 router.get('/order/:username', getOrder); // xong
@@ -72,7 +72,7 @@ router.get('/order/:username', getOrder); // xong
 
 // dung de user xem các order của mình
 // user dashboard
-// router.get('/order_publisher', getPublisherOrders);
+router.get('/order_publishers/:employeeUsername', getPublisherOrders);
 
 // dùng để employee xem tất cả orders đến publisher
 // employee dashboard

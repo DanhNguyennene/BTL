@@ -4,16 +4,18 @@ import ShopFilters from './ShopFilters';
 import PopularBooks from './PopularBooks';
 import FeaturedAuthors from './FeaturedAuthors';
 import ShopGrid from '../components/shop/ShopGrid';
+import { useLocation } from 'react-router-dom';
 import api from '../api/axios';
 
 const Shop = () => {
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(queryParams.get('search') || ''); 
   const [searchType, setSearchType] = useState('title'); // New state for search type
   const [authors, setAuthors] = useState([]);
   const [selectedAuthor, setSelectedAuthor] = useState('');
-
   useEffect(() => {
     fetchBooks();
     fetchAuthors();
@@ -23,7 +25,7 @@ const Shop = () => {
     setLoading(true);
     try {
       // Construct the query parameters based on searchType and selectedAuthor
-      let url = api.defaults.baseURL + 'api/books';
+      let url = api.defaults.baseURL + 'api/books/filter';
       const queryParams = [];
 
       if (searchTerm) {
@@ -41,6 +43,7 @@ const Shop = () => {
       if (queryParams.length > 0) {
         url += `?${queryParams.join('&')}`;
       }
+      console.log(url);
       const response = await fetch(url);
       const data = await response.json();
       setBooks(data);

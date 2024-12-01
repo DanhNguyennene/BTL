@@ -30,7 +30,7 @@ const filterBooks = async (req, res) => {
         const books = await filterBook(filters);
         res.json(books);
     } catch (error) {
-        console.log(error);
+        //console.log(error);
         res.status(500).json({ error: 'Database query error' });
     }
 };
@@ -85,9 +85,9 @@ const updateBook = async (req, res) => {
     try {
         const book_id = req.params.book_id;
         const { title, price, author_id, pu_id, genre_ids, imageURL } = req.body;
-        console.log(req.body);
+        //console.log(req.body);
         const bookUpdated = await updateABook(book_id, title, price, author_id, pu_id, imageURL);
-        console.log(genre_ids)
+        //console.log(genre_ids)
         if (!bookUpdated) {
             return res.status(404).json({ message: 'Book not found' });
         }
@@ -143,7 +143,7 @@ const signUp = async (req, res) => {
             address,
             bank_acc
         } = req.body;
-        console.log("Inside signup: ", username, name, phone_number, email, password, address, bank_acc)
+        //console.log("Inside signup: ", username, name, phone_number, email, password, address, bank_acc)
         if (!username || !name || !phone_number || !email || !password || !address || !bank_acc) {
             return res.status(400).json({
                 success: false,
@@ -336,9 +336,9 @@ const updateOrderStatus = async(req, res) => {
                 message: "Invalid order status"
             })
         }
-        console.log(order_id)
-        console.log(order_status)
-        console.log(order_status, order_id, username)
+        //console.log(order_id)
+        //console.log(order_status)
+        //console.log(order_status, order_id, username)
         const [result] = await connection.query(
             `UPDATE \`order\` SET order_status = ? WHERE order_id = ? AND username = ?`, 
             [order_status, order_id,username]
@@ -357,7 +357,7 @@ const updateOrderStatus = async(req, res) => {
     }catch(error){ 
         console.error('Error in updateOrderStatus:', error);
         if (error.code === 'ER_SIGNAL_EXCEPTION'){
-            console.log("Hello")
+            //console.log("Hello")
             res.status(400).json({
                 success:false,
                 message: error.sqlMessage
@@ -414,41 +414,7 @@ const updatePublisherOrderStatus = async(req, res) => {
 
 const getPublisherOrders = async (req, res) => {
     try {
-        // console.log("hello")
-        const [rows] = await connection.query(
-            `SELECT * FROM order_publisher`
-        );
-        // console.log("hello")
-        // join with order_publisher_book table to get books in each order
-        console.log(rows)
-        for (let i = 0; i < rows.length; i++) {
-            const [books] = await connection.query(
-                `SELECT book_id, quantity FROM order_publisher_book WHERE pu_order_id = ?`,
-                [rows[i].pu_order_id]
-            );
-            rows[i].books = books;
-        }
-
-        for (let i = 0; i < rows.length; i ++){
-            const [publisherName] = await connection.query(
-                `SELECT pu_name FROM PUBLISHER WHERE pu_id = ?`, [rows[i].pu_id]
-            )
-            rows[i].publisherName = publisherName
-        }
-        res.json(rows);
-       
-    } catch (error) {
-        // console.log("hello")
-        console.error('Error in getPublisherOrders:', error);
-        res.status(500).json({ message: error.message });
-    }
-}
-
-
-const getPublisherOrder = async (req, res) => {
-    try{
         const {employeeUsername} = req.params;
-
         const [rows] = await connection.query(
             `SELECT * from ORDER_PUBLISHER WHERE username = ?`, [employeeUsername]
         )
@@ -457,6 +423,30 @@ const getPublisherOrder = async (req, res) => {
             const [books] = await connection.query(
                 `SELECT book_id, quantity FROM order_publisher_book WHERE pu_order_id = ?`,
                 [rows[i].pu_order_id]
+            );
+            rows[i].books = books;
+        }
+        res.json(rows)
+       
+    } catch (error) {
+        // //console.log("hello")
+        console.error('Error in getPublisherOrders:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+
+
+const getPublisherOrder = async (req, res) => {
+    try{
+        const {employeeUsername, pu_order_id} = req.params;
+        const [rows] = await connection.query(
+            `SELECT * from ORDER_PUBLISHER WHERE username = ? AND pu_order_id = ?`, [employeeUsername, pu_order_id]
+        )
+
+        for (let i = 0; i < rows.length; i++) {
+            const [books] = await connection.query(
+                `SELECT book_id, quantity FROM order_publisher_book WHERE pu_order_id = ?`,
+                [pu_order_id]
             );
             rows[i].books = books;
         }
@@ -566,7 +556,7 @@ const deleteGenre = async (req, res) => {
 const createPublisher = async (req, res) => {
     try {
         const { pu_name, pu_phone_number, pu_address } = req.body;
-        console.log(req.body);
+        // //console.log(req.body);
         const [result] = await connection.query(
             `INSERT INTO publisher (pu_name, pu_phone_number, pu_address) VALUES (?, ?, ?)`,
             [pu_name, pu_phone_number, pu_address]
@@ -596,7 +586,7 @@ const updatePublisher = async (req, res) => {
 const deletePublisher = async (req, res) => {
     try {
         const pu_id = req.params.pu_id;
-        console.log(req.params);
+        // //console.log(req.params);
         const [result] = await connection.query(
             `DELETE FROM publisher WHERE pu_id = ?`,
             [pu_id]
@@ -754,7 +744,7 @@ const deleteOrderBook = async (req, res) => {
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Order not found' });
         }
-        // console.log("HELLOs")
+        // //console.log("HELLOs")
         res.status(201).json({ message: 'Order deleted successfully' });
     } catch (error) {
         console.error('Error in deleteOrderBook:', error);
@@ -780,7 +770,7 @@ const deleteOrder = async (req,res) => {
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Order not found' });
         }
-        // console.log("HELLOs")
+        // //console.log("HELLOs")
         res.status(201).json({ message: 'Order deleted successfully' });
     } catch (error) {
         console.error('Error in deleteOrderBook:', error);
@@ -881,7 +871,7 @@ const getEmployeeNotifications = async (req, res) => {
         const {temp_noti} = await connection.query(
             'SELECT * FROM notification;'
         )
-        console.log(temp_noti);
+        //console.log(temp_noti);
         const [notifications] = await connection.query(
             `
             SELECT 
@@ -906,7 +896,7 @@ const getEmployeeNotifications = async (req, res) => {
             ` 
         );
 
-        console.log(notifications)
+        //console.log(notifications)
         const groupedNotifications = notifications.reduce((acc, notification) => {
             const date = new Date(notification.create_at).toLocaleDateString();
             if (!acc[date]){
@@ -922,7 +912,7 @@ const getEmployeeNotifications = async (req, res) => {
             }
             return acc;
         }, {});
-        console.log(groupedNotifications)
+        //console.log(groupedNotifications)
 
 
         res.status(200).json({
@@ -932,7 +922,7 @@ const getEmployeeNotifications = async (req, res) => {
             unread_count: notifications.filter(n => !n.is_read).length
         });
     }catch(error){
-        console.log("Error in getEmployeeNotifications: ", error);
+        //console.log("Error in getEmployeeNotifications: ", error);
         res.status(500).json({
             success:false,
             message: error.message
@@ -1256,7 +1246,7 @@ const getAllOrderLogs = async(req, res) => {
 const getOrderLogs = async (req, res) => {
     try{
         const {order_id} = req.params;
-        console.log(order_id)
+        //console.log(order_id)
         const [logs] = await connection.query(
             `
             SELECT 
@@ -1350,7 +1340,7 @@ const getCustomerOrderLogs = async (req, res) => {
 const  getOrderStatusHistory = async (req, res) => {
     try{
         const {order_id} = req.params;
-        console.log(order_id);
+        //console.log(order_id);
         const [logs] = await connection.query(
             `
             SELECT
