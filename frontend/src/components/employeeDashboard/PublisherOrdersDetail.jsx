@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate,useLocation } from 'react-router-dom';
 import { format } from 'date-fns';
 import { FiArrowLeft, FiClock, FiUser, FiPackage } from 'react-icons/fi';
 import { useAuth } from '../../contexts/AuthContext';
@@ -35,7 +35,9 @@ const OrderDetails = () => {
     const [error, setError] = useState(null);
     const [editingStatus, setEditingStatus] = useState(false);
     const [newStatus, setNewStatus] = useState('');
-
+    const location = useLocation();
+    const queryParams = new URLSearchParams(location.search);
+    const [pubisherOrderId, setPublisherOrderId] = useState(queryParams.get('pu_order_id'));
   useEffect(() => {
     fetchOrderData();
   }, [employeeUsername]);
@@ -44,8 +46,8 @@ const OrderDetails = () => {
   const fetchOrderData = async () => {
     try {
       setLoading(true);
-      console.log(employeeUsername)
-      const response = await api.get(`/api/books/order_publisher/${employeeUsername}`);
+      console.log("employeeUsername",employeeUsername)
+      const response = await api.get(`/api/books/order_publisher/${employeeUsername}/${pubisherOrderId}`);
       console.log(response.data)
       setOrderData(response.data[0]); 
       setNewStatus(response.data[0].pu_order_status);

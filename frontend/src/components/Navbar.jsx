@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate,useLocation } from 'react-router-dom';
 import { Menu, X, BookOpen, Search, ShoppingCart, User, LogOut  } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -7,8 +7,9 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showMenuUsers, setShowMenuUsers] = useState(false);
-
+  const [cartItemCount, setCartItemCount] = useState(0);
   const {userInfo, isAuthenticated, logout, isEmployee, isCustomer} = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
 
 
@@ -18,7 +19,31 @@ const Navbar = () => {
     setShowMenuUsers(false);
   };
 
+  const fetchCartCount = async () => {
+    if (isAuthenticated && isCustomer && userInfo?.username) {
+      try {
+        const response = await fetch(`http://localhost:5000/api/books/cart/${userInfo.username}`);
+        const data = await response.json();
+        setCartItemCount(data.length);
+      } catch (error) {
+        console.error('Failed to fetch cart count:', error);
+        setCartItemCount(0);
+      }
+    }
+  };
+  
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
 
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    fetchCartCount();
+  }, [isAuthenticated, isCustomer, userInfo?.username,location.pathname]);
   // Nav Items
   const navItems = [
     { link: "Home", path: isAuthenticated? `/${userInfo.username}/` : '/' },
@@ -128,9 +153,14 @@ const Navbar = () => {
               {isCustomer && (
                 <Link 
                   to={`/${userInfo?.username}/cart`}
-                  className="text-gray-600 hover:text-blue-600 transition-colors"
+                  className="text-gray-600 hover:text-blue-600 transition-colors relative"
                 >
                   <ShoppingCart className="h-5 w-5" />
+                  {cartItemCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                      {cartItemCount}
+                    </span>
+                  )}
                 </Link>
               )}
               
@@ -176,16 +206,21 @@ const Navbar = () => {
                 {link}
               </Link>
             ))}
-            <div className="flex items-center space-x-4 px-3 py-2">
-              {isCustomer && (
-                <Link 
-                  to={`/${userInfo?.username}/cart`}
-                  className="text-gray-600 hover:text-blue-600 transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <ShoppingCart className="h-5 w-5" />
-                </Link>
-              )}
+                <div className="flex items-center space-x-4 px-3 py-2">
+                  {isCustomer && (
+                    <Link 
+                      to={`/${userInfo?.username}/cart`}
+                      className="text-gray-600 hover:text-blue-600 transition-colors relative"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <ShoppingCart className="h-5 w-5" />
+                      {cartItemCount > 0 && (
+                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                          {cartItemCount}
+                        </span>
+                      )}
+                    </Link>
+                  )}
               {isAuthenticated ? (  
                 <>
                   <Link 

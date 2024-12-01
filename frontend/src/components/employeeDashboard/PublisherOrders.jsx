@@ -51,7 +51,7 @@ const CustomerOrders = () => {
         username: userInfo.username
       };
       console.log(orderData)
-      await api.post('/api/books/order_publisher', orderData)
+      await api.post('/api/books/order_publishers', orderData)
       setShowAddOrderForm(false);
       fetchOrders();
       setNewOrder({
@@ -70,7 +70,7 @@ const CustomerOrders = () => {
   
   const fetchOrders = async () => {
     try{
-      const response = await api.get('/api/books/order_publisher');
+      const response = await api.get(`/api/books/order_publishers/${userInfo.username}`);
       setOrders(response.data);
     }catch(error){
       console.error("Error fetching orders: ", error);
@@ -102,8 +102,8 @@ const CustomerOrders = () => {
   })
 
 
-  const navigateUserOrders = (username) => {
-    navigate(`/${userInfo.username}/employee-dashboard/${username}/publisher-order-details`)
+  const navigateUserOrders = (username ,pu_order_id ) => {
+    navigate(`/${userInfo.username}/employee-dashboard/${username}/publisher-order-details?pu_order_id=${pu_order_id}`);
   }
 
 
@@ -230,7 +230,7 @@ const CustomerOrders = () => {
 
                   <div className="mt-4 pt-4 border-t">
                     <button 
-                      onClick={() => navigateUserOrders(order.username)}
+                      onClick={() => navigateUserOrders(order.username, order.pu_order_id)}
                     className="text-blue-600 hover:text-blue-800 text-sm font-medium">
                       View Full Details →
                     </button>
