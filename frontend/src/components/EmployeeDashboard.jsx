@@ -25,7 +25,7 @@ import EmployeeNotifications from './EmployeeNotifications';
 const EmployeeDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview')
   const tabs = [
-    { id: 'overview', name: 'Dashboard Overview', icon: <FaChartLine /> },
+   
     { id: 'books', name: 'Book Management', icon: <FaBook /> },
     { id: 'customer-orders', name: 'Customer Orders', icon: <FaShoppingCart /> },
     { id: 'publisher-orders', name: 'Publisher Orders', icon: <FaBoxes /> },
@@ -42,8 +42,6 @@ const EmployeeDashboard = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'overview':
-        return <DashBoardOverview />;
       case 'books':
         return <BookManagement />;
       case 'customer-orders':
@@ -59,7 +57,7 @@ const EmployeeDashboard = () => {
       case 'notifications':
         return <EmployeeNotifications/>
       default:
-        return <DashBoardOverview />;
+        return <EmployeeNotifications />;
     }
   };
   return (

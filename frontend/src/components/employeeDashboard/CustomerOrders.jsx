@@ -3,6 +3,7 @@ import api from '../../api/axios';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import OrderLogHistory from './modal/OrderLogHistory';
 
 
 const CustomerOrders = () => {
@@ -11,6 +12,28 @@ const CustomerOrders = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilters] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
+
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [orderLogs, setOrderLogs] = useState([]);
+
+  useEffect(() => {
+    const fetchOrderLogs = async() => {
+      try{
+        const response = await api.get(`/api/books/order-logs`);
+        setOrderLogs(response.data);
+      }catch(error){
+        console.error('Error fetching order logs:', error);
+      }
+    }
+    fetchOrderLogs();
+  }, []);
+
+  const openOrderLogs = (orderId) => {
+      setSelectedOrderId(orderId);
+      setIsModalOpen(true);
+  };
+
 
   const { userInfo, isAuthenticated, isEmployee, isCustomer } = useAuth();
 
@@ -46,19 +69,7 @@ const CustomerOrders = () => {
     return statusColors[statuss] || 'bg-gray-100 text-gray-800';
   };
 
-  /* 
-    CREATE TABLE `ORDER` (
-    order_id INT PRIMARY KEY AUTO_INCREMENT,
-    order_time DATETIME,
-    order_status ENUM('Pending', 'Processing', 'Completed', 'Cancelled', 'Failed'),
-    username VARCHAR(50),
-    FOREIGN KEY (username) REFERENCES CUSTOMER(username)
-	    ON UPDATE CASCADE
-      ON DELETE CASCADE
-);
-  
-  
-  */
+ 
   const filteredOrders = orders.filter(order => {
     const matchesFilters = filter === "all" || order.order_status .toLowerCase() === filter.toLowerCase();
     const matchesSearchs = order.username.toLowerCase().includes(searchQuery.toLowerCase()) || order.order_id.toString().includes(searchQuery)
@@ -177,6 +188,12 @@ const CustomerOrders = () => {
                     className="text-blue-600 hover:text-blue-800 text-sm font-medium">
                       View Full Details →
                     </button>
+                    <button 
+                      onClick={() => openOrderLogs(order.order_id)}
+                      className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+                    >
+                      View Logs
+                    </button>
                   </div>
                 </div>
               ))
@@ -194,7 +211,35 @@ const CustomerOrders = () => {
                 )
               })}
           </div>
+
+
+          <div className='mt-8'>
+            <h2 className='text-xl font-bold mb-4'>Recent Activity Logs</h2>
+            <div className='bg-white rounded-lg shadow-md p-6'>
+              <div className='space-y-4'>
+                {orderLogs.slice(0, 5).map((log) => (
+                  <div key = {log.log_id} className='flex items-center justify-between p-3 bg-gray-50 rounded hover:bg-gray-100'>
+                      <div className='flex-1'>
+                        <p className='font-medium'>Order #{log.order_id} - {log.action_type}</p>
+                        <p className="text-sm text-gray-600">{log.action_note}</p>
+                        <p className='text-sm text-gray-500'>By: {log.action_by_name}</p>
+                      </div>
+                      <div className='text-sm text-gray-500'>
+                        {format(new Date(log.action_timestamp), 'PPp')}
+                      </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
       </div>
+      
+
+      <OrderLogHistory
+        orderId={selectedOrderId}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   )
 }
