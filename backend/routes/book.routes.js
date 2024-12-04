@@ -65,7 +65,7 @@ router.get('/search', searchBookTitles);
 router.get('/order_publisher/:employeeUsername/:pu_order_id', getPublisherOrder);
 
 
-router.get('/order/:username', getOrder); // xong
+router.get('/order/:username/:order_id', getOrder); // xong
 
 
 

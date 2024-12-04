@@ -293,7 +293,7 @@ const getOrders = async (req, res) => {
 }
 const getOrder = async (req, res) => {
     try {
-        const { username } = req.params;
+        const { username,order_id } = req.params;
         // find order where username = username
         // join with order_book table to get books in each order
         // and then join the book_id with book table to get book title
@@ -314,10 +314,11 @@ const getOrder = async (req, res) => {
             JOIN 
                 book ON order_book.book_id = book.book_id
             WHERE 
-                \`order\`.username = ?;
-        ` , [username]
+                \`order\`.username = ?
+            AND
+                \`order\`.order_id = ?;
+        ` , [username,order_id]
         );
-        
         res.json(rows);
     } catch (error) {
         console.error('Error in getOrder:', error);
