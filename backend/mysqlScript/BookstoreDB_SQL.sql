@@ -128,7 +128,6 @@ CREATE TABLE ORDER_PUBLISHER_BOOK (
     ON DELETE CASCADE
 );
 
-
 CREATE TABLE NOTIFICATION (
 	notification_id int primary key auto_increment,
     notification_type ENUM('LowStock', 'NoStock', 'NewOrder', 'StockWarning') not null,
@@ -157,8 +156,8 @@ CREATE TABLE ORDER_ACTION_LOG(
         
 );
 
-DELIMITER //
 
+DELIMITER //
 CREATE TRIGGER after_book_quantity_update
 AFTER UPDATE ON BOOK
 FOR EACH ROW
@@ -180,6 +179,8 @@ BEGIN
     END IF;
 END //
 DELIMITER ;
+
+
 
 
 DELIMITER //
@@ -221,7 +222,6 @@ BEGIN
         CONCAT('Order status changed from ', OLD.order_status, ' to ', NEW.order_status)
     );
 END //
-
 DELIMITER ;
 
 
@@ -291,6 +291,33 @@ END //
 DELIMITER ;
 
 
+
+DELIMITER //
+CREATE TRIGGER after_order_status_change_noti
+AFTER UPDATE ON `ORDER`
+FOR EACH ROW
+BEGIN
+	INSERT INTO NOTIFICATION (
+		notification_type,
+        message,
+        reference_id,
+        priority
+    ) VALUES (
+		'NewOrder',
+        CONCAT('Order #', NEW.order_id, ' status changed from ', 
+               OLD.order_status, ' to ', NEW.order_status),
+		NEW.order_id,
+        CASE 
+            WHEN NEW.order_status IN ('Cancelled', 'Failed') THEN 'High'
+            WHEN NEW.order_status IN ('Processing', 'Completed') THEN 'Medium'
+            ELSE 'Low'
+        END
+    );
+END //
+DELIMITER ;
+
+
+
 DELIMITER //
 CREATE TRIGGER after_order_completion_stock_check
 AFTER UPDATE ON `ORDER`
@@ -333,6 +360,8 @@ BEGIN
 END //
 DELIMITER ;
 
+
+
 DELIMITER //
 CREATE TRIGGER after_publisher_order_success
 BEFORE UPDATE ON ORDER_PUBLISHER
@@ -348,34 +377,83 @@ END
 // DELIMITER ;
 
 
+DELIMITER //
+CREATE PROCEDURE insert_notification(
+    p_type ENUM('LowStock', 'NoStock', 'NewOrder', 'StockWarning'),
+    p_message TEXT,
+    p_reference_id INT,
+    p_priority ENUM('Low', 'Medium', 'High')
+)
+BEGIN
+    INSERT INTO NOTIFICATION (
+        notification_type, 
+        message,
+        reference_id,
+        priority 
+    ) VALUES (
+        p_type,
+        p_message,
+        p_reference_id,
+        p_priority
+    );
+END //
+DELIMITER ;
+
 
 DELIMITER //
 CREATE TRIGGER after_customer_order_complete 
 BEFORE UPDATE ON `ORDER`
 FOR EACH ROW
 BEGIN
-	DECLARE sufficient_stock BOOLEAN default TRUE;
+    DECLARE sufficient_stock BOOLEAN DEFAULT TRUE;
+    DECLARE insufficient_stock_message TEXT;
     
-    -- Check if there's enough stock for all books in the order
     IF NEW.order_status = 'Completed' AND OLD.order_status != 'Completed' THEN
-		-- We have to check if there are any book left in the stock
-		SELECT coalesce(MIN(b.quantity >= ob.quantity), TRUE) INTO sufficient_stock
-        FROM  ORDER_BOOk ob
+        -- Check if there's sufficient stock for all books in the order
+        SELECT COALESCE(MIN(b.quantity >= ob.quantity), TRUE) INTO sufficient_stock
+        FROM ORDER_BOOK ob
         JOIN BOOK b ON ob.book_id = b.book_id
         WHERE ob.order_id = NEW.order_id;
         
-        IF NOT sufficient_stock THEN
-			SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Insufficient stock for one or more books in the order';
-		ELSE
-			UPDATE BOOK b
+        IF sufficient_stock THEN
+            -- Reduce book quantities
+            UPDATE BOOK b
             INNER JOIN ORDER_BOOK ob ON b.book_id = ob.book_id
             SET b.quantity = b.quantity - ob.quantity
             WHERE ob.order_id = NEW.order_id;
-		END IF;
-	END IF;
-END
-//DELIMITER ;
+            
+            -- Notify successful order completion
+            INSERT INTO NOTIFICATION (
+                notification_type, 
+                message,
+                reference_id,
+                priority 
+            ) VALUES(
+                'NewOrder',
+                CONCAT('Order #', NEW.order_id, ' completed successfully'),
+                NEW.order_id,
+                'Medium'
+            );
+        ELSE
+            SELECT GROUP_CONCAT(
+                CONCAT(b.title, ' (Ordered: ', ob.quantity, ', Available: ', b.quantity, ')')
+                SEPARATOR ', '
+            ) INTO insufficient_stock_message
+            FROM ORDER_BOOK ob
+            JOIN BOOK b ON ob.book_id = b.book_id
+            WHERE ob.order_id = NEW.order_id AND ob.quantity > b.quantity;
+            
+            CALL insert_notification(
+				'StockWarning',
+                CONCAT('Cannot complete Order #', NEW.order_id, '. Insufficient stock: ', insufficient_stock_message),
+                NEW.order_id,
+                'High'
+			);
+            
+        END IF;
+    END IF;
+END //
+DELIMITER ;
 
 
 
@@ -478,7 +556,6 @@ BEGIN
     ORDER BY SUM(ob.quantity) DESC 
     LIMIT 1;
     
-    -- Find the top customer
     SELECT 
         u.name,
         COUNT(o.order_id)
@@ -493,6 +570,9 @@ BEGIN
     LIMIT 1;
 END //
 DELIMITER ;
+
+
+
 
 DELIMITER //
 CREATE TRIGGER before_book_delete

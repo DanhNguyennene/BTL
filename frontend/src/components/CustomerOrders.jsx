@@ -2,12 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { BookOpen, Clock, CheckCircle, XCircle, Trash2  } from 'lucide-react';
 import api from '../api/axios';
+import OrderLogHistory from './employeeDashboard/modal/OrderLogHistory';
+
 const CustomerOrders = () => {
     const { userInfo, logout, isAuthenticated } = useAuth();
     const [orders, setOrders] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [cancelModalOpen, setCancelModalOpen] = useState(false);
     const [selectedOrderToCancel, setSelectedOrderToCancel] = useState(null);
+
+    const [selectedOrderId, setSelectedOrderId] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    
+
+    const openOrderLogs = (orderId) => {
+        setSelectedOrderId(orderId);
+        setIsModalOpen(true);
+    };
   
     useEffect(() => {
         if (!isAuthenticated) {
@@ -142,6 +153,12 @@ const CustomerOrders = () => {
                       <div className="text-sm text-gray-600">
                         Order ID: {orderGroup.orderId} | 
                         Ordered on: {new Date(orderGroup.orderTime).toLocaleDateString()}
+                        <button 
+                            onClick={() => openOrderLogs(orderGroup.orderId)}
+                            className="ml-2 text-blue-600 hover:text-blue-800 hover:underline transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 rounded"
+                        >
+                            Open Order Logs
+                        </button>
                       </div>
                       <button
                         onClick={() => {
@@ -245,6 +262,13 @@ const CustomerOrders = () => {
           </div>
         )}
       </div>
+
+      <OrderLogHistory
+        orderId={selectedOrderId}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
+
     </div>
   );
 };

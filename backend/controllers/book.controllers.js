@@ -325,53 +325,248 @@ const getOrder = async (req, res) => {
     }
 }
 
-const updateOrderStatus = async(req, res) => {
-    try{
-        const{username,order_id} = req.params;
-        const {order_status} = req.body;
-        const validStatuses = ['inCart','Pending', 'Processing', 'Completed', 'Cancelled', 'Failed'];
-        if(!validStatuses.includes(order_status)){
+// const updateOrderStatus = async(req, res) => {
+//     let updateConnection = null;
+//     let notificationConnection = null;
+
+    
+//     try {
+//         updateConnection = await connection.getConnection();
+//         notificationConnection = await connection.getConnection();
+        
+//         await updateConnection.beginTransaction();
+
+//         const { username, order_id } = req.params;
+//         const { order_status } = req.body;
+//         const validStatuses = ['inCart','Pending', 'Processing', 'Completed', 'Cancelled', 'Failed'];
+        
+//         if (!validStatuses.includes(order_status)) {
+//             await updateConnection.rollback();
+//             return res.status(400).json({
+//                 success: false,
+//                 message: "Invalid order status"
+//             });
+//         }
+        
+//         const [result] = await updateConnection.query(
+//             `UPDATE \`ORDER\` SET order_status = ? WHERE order_id = ? AND username = ?`, 
+//             [order_status, order_id, username]
+//         );
+
+//         if (result.affectedRows === 0) {
+//             await updateConnection.rollback();
+//             return res.status(404).json({
+//                 success: false,
+//                 message: 'Order not found'
+//             });
+//         }
+        
+        
+//         const [notifications] = await notificationConnection.query(
+//             `SELECT * FROM NOTIFICATION 
+//              WHERE reference_id = ? 
+//              AND notification_type = 'StockWarning' 
+//              AND message LIKE '%Insufficient stock%'
+//              AND create_at >= NOW() - INTERVAL 5 SECOND`,
+//             [order_id]
+//         );
+//         console.log(notifications)
+
+//         if (notifications.length > 0) {
+//             await updateConnection.rollback();
+//             return res.status(400).json({
+//                 success: false,
+//                 message: "Cannot complete order due to insufficient stock",
+//                 notifications: notifications.map(n => n.message)
+//             });
+//         }
+
+//         await updateConnection.commit();
+        
+//         res.json({
+//             success: true,
+//             message: "Order status has been updated"
+//         });
+//     } catch(error) { 
+//         if (updateConnection) {
+//             try {
+//                 await updateConnection.rollback();
+//             } catch (rollbackError) {
+//                 console.error('Error rolling back transaction:', rollbackError);
+//             }
+//         }
+
+//         console.error('Error in updateOrderStatus:', error);
+        
+//         if (error.code === 'ER_SIGNAL_EXCEPTION') {
+//             res.status(400).json({
+//                 success: false,
+//                 message: error.sqlMessage
+//             });
+//         } else {
+//             res.status(500).json({
+//                 success: false,
+//                 message: "An error occurred while updating order status",
+//                 error: error.message
+//             });
+//         }
+//     } finally {
+//         try {
+//             if (updateConnection) {
+//                  updateConnection.release();
+//             }
+//             if (notificationConnection) {
+//                  notificationConnection.release();
+//             }
+//         } catch (releaseError) {
+//             console.error('Error releasing connections:', releaseError);
+//         }
+//     }
+// }
+
+
+const updateOrderStatus = async (req, res) => {
+    let updateConnection = null;
+    let notificationConnection = null;
+
+    try {
+        console.log("Starting updateOrderStatus function");
+        
+        updateConnection = await connection.getConnection();
+        notificationConnection = await connection.getConnection();
+
+        console.log("Database connections established");
+
+        await updateConnection.beginTransaction();
+        console.log("Transaction started");
+
+        const { username, order_id } = req.params;
+        const { order_status } = req.body;
+
+        console.log(`Request received with params: username=${username}, order_id=${order_id}, body: ${JSON.stringify(req.body)}`);
+
+        const validStatuses = ['inCart', 'Pending', 'Processing', 'Completed', 'Cancelled', 'Failed'];
+
+        if (!validStatuses.includes(order_status)) {
+            console.error(`Invalid order status: ${order_status}`);
             return res.status(400).json({
-                success:false,
-                message: "Invalid order status"
-            })
+                success: false,
+                message: "Invalid order status",
+            });
         }
-        //console.log(order_id)
-        //console.log(order_status)
-        //console.log(order_status, order_id, username)
-        const [result] = await connection.query(
-            `UPDATE \`order\` SET order_status = ? WHERE order_id = ? AND username = ?`, 
-            [order_status, order_id,username]
-        )
-        if (result.affectedRows===0){
+
+        console.log("Order status is valid");
+
+        const [orderRows] = await updateConnection.query(
+            `SELECT order_status FROM \`ORDER\` WHERE order_id = ? AND username = ?`,
+            [order_id, username]
+        );
+
+        if (orderRows.length === 0) {
+            console.error(`Order not found for order_id=${order_id} and username=${username}`);
+            await updateConnection.rollback();
             return res.status(404).json({
-                success:false,
-                message: 'Order not found'
-            })
+                success: false,
+                message: "Order not found",
+            });
         }
 
-        res.json({
-            success:true,
-            message:"Order status has been update"
-        })
-    }catch(error){ 
-        console.error('Error in updateOrderStatus:', error);
-        if (error.code === 'ER_SIGNAL_EXCEPTION'){
-            //console.log("Hello")
-            res.status(400).json({
-                success:false,
-                message: error.sqlMessage
-            });
-        }else{
-            res.status(500).json({
-                success:false,
-                message: "An error occured while updating order status",
-                error: error.message
-            });
-        };
-    }
-}
+        const prevStatus = orderRows[0].order_status;
+        console.log(`Previous order status retrieved: ${prevStatus}`);
 
+        const [result] = await updateConnection.query(
+            `UPDATE \`ORDER\` SET order_status = ? WHERE order_id = ? AND username = ?`,
+            [order_status, order_id, username]
+        );
+
+        if (result.affectedRows === 0) {
+            console.error("No rows affected during order update");
+            await updateConnection.rollback();
+            return res.status(404).json({
+                success: false,
+                message: "Order not found",
+            });
+        }
+
+        console.log(`Order status updated to: ${order_status}`);
+
+        await updateConnection.commit();
+        console.log("Transaction committed");
+
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        console.log("Checking for notifications related to insufficient stock");
+        const [notifications] = await notificationConnection.query(
+            `SELECT * FROM NOTIFICATION 
+             WHERE reference_id = ? 
+             AND notification_type = 'StockWarning' 
+             AND message LIKE '%Insufficient stock%'
+             AND create_at >= NOW() - INTERVAL 2 SECOND`,
+            [order_id]
+        );
+
+        if (notifications.length > 0) {
+            console.warn("Insufficient stock notifications detected:", notifications);
+
+            await updateConnection.query(
+                `UPDATE \`ORDER\` SET order_status = ? WHERE order_id = ? AND username = ?`,
+                [prevStatus, order_id, username]
+            );
+
+            console.warn(`Order status reverted to: ${prevStatus}`);
+            return res.status(400).json({
+                success: false,
+                message: "Cannot complete order due to insufficient stock",
+                notifications: notifications.map((n) => n.message),
+            });
+        }
+
+        console.log("Order status updated successfully without any stock warnings");
+        res.json({
+            success: true,
+            message: "Order status has been updated",
+        });
+    } catch (error) {
+        console.error("Error in updateOrderStatus function:", error);
+
+        if (updateConnection) {
+            try {
+                console.log("Attempting to rollback transaction");
+                await updateConnection.rollback();
+                console.log("Transaction rolled back successfully");
+            } catch (rollbackError) {
+                console.error("Error rolling back transaction:", rollbackError);
+            }
+        }
+
+        if (error.code === "ER_SIGNAL_EXCEPTION") {
+            console.error("SQL Signal Exception:", error.sqlMessage);
+            res.status(400).json({
+                success: false,
+                message: error.sqlMessage,
+            });
+        } else {
+            res.status(500).json({
+                success: false,
+                message: "An error occurred while updating order status",
+                error: error.message,
+            });
+        }
+    } finally {
+        try {
+            if (updateConnection) {
+                console.log("Releasing updateConnection");
+                 updateConnection.release();
+            }
+            if (notificationConnection) {
+                console.log("Releasing notificationConnection");
+                 notificationConnection.release();
+            }
+        } catch (releaseError) {
+            console.error("Error releasing connections:", releaseError);
+        }
+    }
+};
 
 const updatePublisherOrderStatus = async(req, res) => {
     try{
@@ -781,12 +976,8 @@ const deleteOrder = async (req,res) => {
 const createOrderPublisher = async (req, res) => {
     try {
         const { pu_order_status, pu_order_time, username, pu_id, books } = req.body;
+        
         const pu_order_time_change = dayjs(pu_order_time).format('YYYY-MM-DD');
-
-        // update order_publisher table
-        // also update order_publisher_book table from books
-        // book: {book_id, quantity}
-        // books: [{book_id, quantity}]
         const [result] = await connection.query(
             `INSERT INTO order_publisher (pu_order_status, pu_order_time, username, pu_id) VALUES (?, ?, ?, ?)`,
             [pu_order_status, pu_order_time_change, username, pu_id]

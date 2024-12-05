@@ -36,11 +36,6 @@ const {
     getPublisherOrder,
     updateOrderStatus,
     updatePublisherOrderStatus,
-    
-
-
-
-
     getAllOrderLogs,
     getOrderLogs,
     getCustomerOrderLogs,
@@ -162,7 +157,7 @@ router.patch('/cart/:username/clearCart', clearCart);
 // user dashboard
 // nút Clear Cart
 
-router.post('/order_publisher', createOrderPublisher);
+router.post('/order_publishers', createOrderPublisher);
 // dùng để employee tạo order đến publisher
 // sẽ update cho order_publisher_book table vì mỗi order sẽ có nhiều sách
 // employee dashboard
@@ -170,11 +165,6 @@ router.post('/order_publisher', createOrderPublisher);
 router.patch('/:book_id', updateBook);
 router.delete('/:book_id', deleteBook);
 router.delete('/', deleteAllBooks);
-
-
-
-
-      
 
 
 
@@ -200,6 +190,8 @@ router.delete('/notifications/:notification_id', deleteNotification);
 
 
 
-
 router.get('/:book_id', getBook);
 module.exports = router;
+
+
+

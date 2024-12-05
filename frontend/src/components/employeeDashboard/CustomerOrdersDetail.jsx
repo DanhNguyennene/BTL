@@ -68,6 +68,7 @@ const OrderDetails = () => {
   const handleStatusUpdate = async () => {
     try {
       await api.patch(`/api/books/order/${customerUsername}/${orders[0]?.order_id}/status`, {
+        
         order_status: newStatus,
       });
       fetchOrderData();
