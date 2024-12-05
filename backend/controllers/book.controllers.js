@@ -274,25 +274,6 @@ const getGenres = async (req, res) => {
 // TODO:
 const getOrders = async (req, res) => {
     try {
-        const [rows] = await connection.query(
-            `SELECT * FROM \`order\``
-        );
-        // join with order_book table to get books in each order
-        for (let i = 0; i < rows.length; i++) {
-            const [books] = await connection.query(
-                `SELECT book_id, quantity FROM order_book WHERE order_id = ?`,
-                [rows[i].order_id]
-            );
-            rows[i].books = books;
-        }
-        res.json(rows);
-    } catch (error) {
-        console.error('Error in getOrders:', error);
-        res.status(500).json({ message: error.message });
-    }
-}
-const getOrder = async (req, res) => {
-    try {
         const { username } = req.params;
         // find order where username = username
         // join with order_book table to get books in each order
@@ -317,7 +298,40 @@ const getOrder = async (req, res) => {
                 \`order\`.username = ?;
         ` , [username]
         );
-        
+        res.json(rows);
+    } catch (error) {
+        console.error('Error in getOrder:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+const getOrder = async (req, res) => {
+    try {
+        const { username,order_id } = req.params;
+        // find order where username = username
+        // join with order_book table to get books in each order
+        // and then join the book_id with book table to get book title
+        const [rows] = await connection.query(
+            `SELECT 
+                \`order\`.*,
+                order_book.*,
+                book.book_id,
+                book.title,
+                book.price,
+                book.author_id,
+                book.pu_id,
+                book.imageURL
+            FROM 
+                \`order\`
+            JOIN 
+                order_book ON \`order\`.order_id = order_book.order_id
+            JOIN 
+                book ON order_book.book_id = book.book_id
+            WHERE 
+                \`order\`.username = ?
+            AND
+                \`order\`.order_id = ?;
+        ` , [username,order_id]
+        );
         res.json(rows);
     } catch (error) {
         console.error('Error in getOrder:', error);

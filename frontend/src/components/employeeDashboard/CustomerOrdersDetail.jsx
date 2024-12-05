@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { format } from 'date-fns';
 import { FiArrowLeft, FiClock, FiUser, FiPackage } from 'react-icons/fi';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../api/axios';
 import { Toaster } from 'react-hot-toast';
 import { showSuccessNotification, showErrorNotification } from '../../util/toastNotifications';
-
 
 
 
@@ -33,7 +32,9 @@ const OrderDetails = () => {
     const { customerUsername } = useParams();
     const navigate = useNavigate();
     const { userInfo, isEmployee } = useAuth();
-    
+    const location = useLocation();
+    const params = new URLSearchParams(location.search);
+
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -53,8 +54,7 @@ const OrderDetails = () => {
   const fetchOrderData = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/api/books/order/${customerUsername}`);
-      
+      const response = await api.get(`/api/books/order/${customerUsername}/${params.get('order_id')}`);
       setOrders(response.data);
       setNewStatus(response.data[0]?.order_status || '');
     } catch (err) {

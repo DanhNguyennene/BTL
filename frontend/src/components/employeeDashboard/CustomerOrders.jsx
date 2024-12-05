@@ -77,8 +77,8 @@ const CustomerOrders = () => {
   })
 
 
-  const navigateUserOrders = (username) => {
-    navigate(`/${userInfo.username}/employee-dashboard/${username}/order-details`)
+  const navigateUserOrders = (username,order_id) => {
+    navigate(`/${userInfo.username}/employee-dashboard/${username}/order-details?order_id=${order_id}`)
   }
   
 
@@ -184,7 +184,7 @@ const CustomerOrders = () => {
 
                   <div className="mt-4 pt-4 border-t">
                     <button 
-                      onClick={() => navigateUserOrders(order.username)}
+                      onClick={() => navigateUserOrders(order.username,order.order_id)}
                     className="text-blue-600 hover:text-blue-800 text-sm font-medium">
                       View Full Details →
                     </button>

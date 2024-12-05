@@ -54,13 +54,13 @@ router.get('/authors', getAuthors);
 
 router.get('/genres', getGenres);
 router.get('/publishers', getPublishers);
-router.get('/orders', getOrders);
+router.get('/orders/:username', getOrders);
 router.get('/order_publisher', getPublisherOrders);
 router.get('/search', searchBookTitles);
 router.get('/order_publisher/:employeeUsername/:pu_order_id', getPublisherOrder);
 
 
-router.get('/order/:username', getOrder); // xong
+router.get('/order/:username/:order_id', getOrder); // xong
 
 
 
