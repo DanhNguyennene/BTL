@@ -13,7 +13,7 @@ import { useAuth } from '../contexts/AuthContext';
 const useBooks = (filteredBooks = null) => {
   const navigate = useNavigate();
   const { userInfo, isAuthenticated, isEmployee, isCustomer } = useAuth();
-  
+
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -37,8 +37,8 @@ const useBooks = (filteredBooks = null) => {
 
       const finalBooks = filteredBooks
         ? detailedBooks.filter((book) =>
-            filteredBooks.some((filteredBook) => filteredBook.book_id === book.book_id)
-          )
+          filteredBooks.some((filteredBook) => filteredBook.book_id === book.book_id)
+        )
         : detailedBooks;
 
       setBooks(finalBooks);
@@ -85,12 +85,12 @@ const BookCards = ({ filteredBooks, headline }) => {
         className="mySwiper"
       >
         {books.map((book) => (
-          <SwiperSlide key={book.book_id}>
-            <Link 
-              to={isAuthenticated 
+          <SwiperSlide key={book.book_id} className='pb-16'>
+            <Link
+              to={isAuthenticated
                 ? `/${userInfo.username}/books-info/${book.book_id}`
                 : `/books-info/${book.book_id}`
-              } 
+              }
               className="group"
             >
               <div className='relative overflow-hidden rounded-lg shadow-lg'>
@@ -103,6 +103,7 @@ const BookCards = ({ filteredBooks, headline }) => {
             </Link>
           </SwiperSlide>
         ))}
+
       </Swiper>
     </div>
   );
