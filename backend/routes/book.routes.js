@@ -12,6 +12,7 @@ const {
     getAuthors,
     getGenres,
     getOrders,
+    getOrdersCustomer,
     showAllBookInCart,
     updateOrderBookQuantity,
     deleteOrderBook,
@@ -55,6 +56,7 @@ router.get('/authors', getAuthors);
 router.get('/genres', getGenres);
 router.get('/publishers', getPublishers);
 router.get('/orders', getOrders);
+router.get('/orders/:username', getOrdersCustomer);
 router.get('/order_publisher', getPublisherOrders);
 router.get('/search', searchBookTitles);
 router.get('/order_publisher/:employeeUsername/:pu_order_id', getPublisherOrder);

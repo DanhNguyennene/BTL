@@ -1,11 +1,11 @@
-import React, {useState} from 'react'
+import React, { useState } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom';
 import { FaShoppingBag, FaBell, FaUser, FaHome } from 'react-icons/fa';
 
-import { 
-  FaBook, 
-  FaShoppingCart, 
-  FaUserEdit, 
+import {
+  FaBook,
+  FaShoppingCart,
+  FaUserEdit,
   FaBoxes,
   FaChartLine,
   FaBookReader,
@@ -25,7 +25,7 @@ import EmployeeNotifications from './EmployeeNotifications';
 const EmployeeDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview')
   const tabs = [
-   
+
     { id: 'books', name: 'Book Management', icon: <FaBook /> },
     { id: 'customer-orders', name: 'Customer Orders', icon: <FaShoppingCart /> },
     { id: 'publisher-orders', name: 'Publisher Orders', icon: <FaBoxes /> },
@@ -33,8 +33,8 @@ const EmployeeDashboard = () => {
     { id: 'genres', name: 'Genre Management', icon: <FaBookReader /> },
     { id: 'publishers', name: 'Publisher Management', icon: <FaBuilding /> },
     {
-      id: 'notifications', 
-      name: 'Notifications', 
+      id: 'notifications',
+      name: 'Notifications',
       icon: <FaBell />,
       description: 'Stay updated with latest alerts'
     }
@@ -55,7 +55,7 @@ const EmployeeDashboard = () => {
       case 'publishers':
         return <PublisherManagement />;
       case 'notifications':
-        return <EmployeeNotifications/>
+        return <EmployeeNotifications />
       default:
         return <EmployeeNotifications />;
     }
@@ -70,22 +70,22 @@ const EmployeeDashboard = () => {
           </h2>
         </div> */}
         <nav className='mt-4'>
-            {tabs.map((tab) => (
-              <button
+          {tabs.map((tab) => (
+            <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`w-full text-lg flex items-center px-6 py-5 text-left ${activeTab === tab.id? 'bg-blue-500 text-white' : 'text-gray-600 hover:bg-blue-50'}`}
-              >
-                <span className='mr-3 text-3xl'>{tab.icon}</span>
-                {tab.name}
-              </button>
-            ))}
+              className={`w-full text-lg flex items-center px-6 py-5 text-left ${activeTab === tab.id ? 'bg-blue-500 text-white' : 'text-gray-600 hover:bg-blue-50'}`}
+            >
+              <span className='mr-3 text-3xl'>{tab.icon}</span>
+              {tab.name}
+            </button>
+          ))}
         </nav>
       </div>
 
       <div className='flex-1 overflow-auto'>
         <div className='p-10'>
-            {renderContent()}
+          {renderContent()}
         </div>
       </div>
     </div>

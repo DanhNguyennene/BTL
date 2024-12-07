@@ -29,7 +29,7 @@ const CustomerOrders = () => {
     const fetchOrders = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`${api.defaults.baseURL}api/books/orders`);
+        const response = await fetch(`${api.defaults.baseURL}api/books/orders/${userInfo.username}`);
         console.log(`${userInfo.username}`)
         const data = await response.json();
         setOrders(data);
