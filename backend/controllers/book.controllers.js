@@ -104,7 +104,7 @@ const deleteBook = async (req, res) => {
     try {
         const book_id = req.params.book_id;
         const [result] = await connection.query(
-            `DELETE FROM BOOK WHERE book_id = ?`,[book_id]
+            `DELETE FROM BOOK WHERE book_id = ?`, [book_id]
         )
         if (result.affectedRows === 0) {
             return res.status(404).json({
@@ -116,10 +116,10 @@ const deleteBook = async (req, res) => {
         })
     } catch (error) {
         console.error("Error in deleteBook: ", error);
-        if (error.code === 'ER_SIGNAL_EXCEPTION'){
-            res.status(400).json({message: error.sqlMessage})
-        }else{
-            res.status(500).json({message: error.message})
+        if (error.code === 'ER_SIGNAL_EXCEPTION') {
+            res.status(400).json({ message: error.sqlMessage })
+        } else {
+            res.status(500).json({ message: error.message })
         }
     }
 };
@@ -274,39 +274,25 @@ const getGenres = async (req, res) => {
 // TODO:
 const getOrders = async (req, res) => {
     try {
-        const { username } = req.params;
-        // find order where username = username
-        // join with order_book table to get books in each order
-        // and then join the book_id with book table to get book title
         const [rows] = await connection.query(
-            `SELECT 
-                \`order\`.*,
-                order_book.*,
-                book.book_id,
-                book.title,
-                book.price,
-                book.author_id,
-                book.pu_id,
-                book.imageURL
-            FROM 
-                \`order\`
-            JOIN 
-                order_book ON \`order\`.order_id = order_book.order_id
-            JOIN 
-                book ON order_book.book_id = book.book_id
-            WHERE 
-                \`order\`.username = ?;
-        ` , [username]
+            `SELECT * FROM \`order\``
         );
+        for (let i = 0; i < rows.length; i++) {
+            const [books] = await connection.query(
+                `SELECT book_id, quantity FROM order_book WHERE order_id = ?`,
+                [rows[i].order_id]
+            );
+            rows[i].books = books;
+        }
         res.json(rows);
     } catch (error) {
-        console.error('Error in getOrder:', error);
+        console.error('Error in getOrders:', error);
         res.status(500).json({ message: error.message });
     }
 }
 const getOrder = async (req, res) => {
     try {
-        const { username,order_id } = req.params;
+        const { username, order_id } = req.params;
         // find order where username = username
         // join with order_book table to get books in each order
         // and then join the book_id with book table to get book title
@@ -330,7 +316,7 @@ const getOrder = async (req, res) => {
                 \`order\`.username = ?
             AND
                 \`order\`.order_id = ?;
-        ` , [username,order_id]
+        ` , [username, order_id]
         );
         res.json(rows);
     } catch (error) {
@@ -343,17 +329,17 @@ const getOrder = async (req, res) => {
 //     let updateConnection = null;
 //     let notificationConnection = null;
 
-    
+
 //     try {
 //         updateConnection = await connection.getConnection();
 //         notificationConnection = await connection.getConnection();
-        
+
 //         await updateConnection.beginTransaction();
 
 //         const { username, order_id } = req.params;
 //         const { order_status } = req.body;
 //         const validStatuses = ['inCart','Pending', 'Processing', 'Completed', 'Cancelled', 'Failed'];
-        
+
 //         if (!validStatuses.includes(order_status)) {
 //             await updateConnection.rollback();
 //             return res.status(400).json({
@@ -361,7 +347,7 @@ const getOrder = async (req, res) => {
 //                 message: "Invalid order status"
 //             });
 //         }
-        
+
 //         const [result] = await updateConnection.query(
 //             `UPDATE \`ORDER\` SET order_status = ? WHERE order_id = ? AND username = ?`, 
 //             [order_status, order_id, username]
@@ -374,8 +360,8 @@ const getOrder = async (req, res) => {
 //                 message: 'Order not found'
 //             });
 //         }
-        
-        
+
+
 //         const [notifications] = await notificationConnection.query(
 //             `SELECT * FROM NOTIFICATION 
 //              WHERE reference_id = ? 
@@ -396,7 +382,7 @@ const getOrder = async (req, res) => {
 //         }
 
 //         await updateConnection.commit();
-        
+
 //         res.json({
 //             success: true,
 //             message: "Order status has been updated"
@@ -411,7 +397,7 @@ const getOrder = async (req, res) => {
 //         }
 
 //         console.error('Error in updateOrderStatus:', error);
-        
+
 //         if (error.code === 'ER_SIGNAL_EXCEPTION') {
 //             res.status(400).json({
 //                 success: false,
@@ -445,7 +431,7 @@ const updateOrderStatus = async (req, res) => {
 
     try {
         console.log("Starting updateOrderStatus function");
-        
+
         updateConnection = await connection.getConnection();
         notificationConnection = await connection.getConnection();
 
@@ -570,11 +556,11 @@ const updateOrderStatus = async (req, res) => {
         try {
             if (updateConnection) {
                 console.log("Releasing updateConnection");
-                 updateConnection.release();
+                updateConnection.release();
             }
             if (notificationConnection) {
                 console.log("Releasing notificationConnection");
-                 notificationConnection.release();
+                notificationConnection.release();
             }
         } catch (releaseError) {
             console.error("Error releasing connections:", releaseError);
@@ -582,35 +568,35 @@ const updateOrderStatus = async (req, res) => {
     }
 };
 
-const updatePublisherOrderStatus = async(req, res) => {
-    try{
-        const{pu_order_id} = req.params;
-        const {pu_order_status} = req.body;
+const updatePublisherOrderStatus = async (req, res) => {
+    try {
+        const { pu_order_id } = req.params;
+        const { pu_order_status } = req.body;
 
         const validStatuses = ['Success', 'Pending', 'Failed'];
-        if(!validStatuses.includes(pu_order_status)){
+        if (!validStatuses.includes(pu_order_status)) {
             return res.status(400).json({
-                success:false,
+                success: false,
                 message: "Invalid order status"
             })
         }
 
         const [result] = await connection.query(
-            `UPDATE \`ORDER_PUBLISHER\` SET pu_order_status = ? WHERE pu_order_id = ?`, 
+            `UPDATE \`ORDER_PUBLISHER\` SET pu_order_status = ? WHERE pu_order_id = ?`,
             [pu_order_status, pu_order_id]
         )
-        if (result.affectedRows===0){
+        if (result.affectedRows === 0) {
             return res.status(404).json({
-                success:false,
+                success: false,
                 message: 'Order not found'
             })
         }
 
         res.json({
-            success:true,
-            message:"Order status has been update"
+            success: true,
+            message: "Order status has been update"
         })
-    }catch(error){ 
+    } catch (error) {
         console.error('Error in updateOrderStatus:', error);
         res.status(500).json({
             success: false,
@@ -623,7 +609,7 @@ const updatePublisherOrderStatus = async(req, res) => {
 
 const getPublisherOrders = async (req, res) => {
     try {
-        const {employeeUsername} = req.params;
+        const { employeeUsername } = req.params;
         const [rows] = await connection.query(
             `SELECT * from ORDER_PUBLISHER WHERE username = ?`, [employeeUsername]
         )
@@ -636,7 +622,7 @@ const getPublisherOrders = async (req, res) => {
             rows[i].books = books;
         }
         res.json(rows)
-       
+
     } catch (error) {
         // //console.log("hello")
         console.error('Error in getPublisherOrders:', error);
@@ -646,8 +632,8 @@ const getPublisherOrders = async (req, res) => {
 
 
 const getPublisherOrder = async (req, res) => {
-    try{
-        const {employeeUsername, pu_order_id} = req.params;
+    try {
+        const { employeeUsername, pu_order_id } = req.params;
         const [rows] = await connection.query(
             `SELECT * from ORDER_PUBLISHER WHERE username = ? AND pu_order_id = ?`, [employeeUsername, pu_order_id]
         )
@@ -660,7 +646,7 @@ const getPublisherOrder = async (req, res) => {
             rows[i].books = books;
         }
         res.json(rows)
-    }catch(error){
+    } catch (error) {
         console.error('Error in getOrder:', error);
         res.status(500).json({ message: error.message });
     }
@@ -858,7 +844,7 @@ const insertNotAlreadyInCart = async (req, res) => {
                 \`order\` o
             WHERE 
                 o.username = ? AND o.order_id = ?`,
-            [order_id, book_id, username,order_id]
+            [order_id, book_id, username, order_id]
         );
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Order not found' });
@@ -868,7 +854,7 @@ const insertNotAlreadyInCart = async (req, res) => {
         console.error('Error in updateOrderBook:', error);
         res.status(500).json({ message: error.message });
     }
-} 
+}
 const showAllBookInCart = async (req, res) => {
     try {
         const { username } = req.params;
@@ -920,7 +906,7 @@ const updateOrderBookQuantity = async (req, res) => {
                 ob.order_id = ?
             AND 
                 ob.book_id = ?`,
-            [quantity,username, order_id, book_id]
+            [quantity, username, order_id, book_id]
         );
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Order not found' });
@@ -948,7 +934,7 @@ const deleteOrderBook = async (req, res) => {
                 ob.order_id = ? 
             AND 
                 ob.book_id = ?`,
-            [username,order_id, book_id]
+            [username, order_id, book_id]
         );
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Order not found' });
@@ -960,9 +946,9 @@ const deleteOrderBook = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
-const deleteOrder = async (req,res) => {
+const deleteOrder = async (req, res) => {
     try {
-        const { order_id} = req.body;
+        const { order_id } = req.body;
         const username = req.params.username;
         const [result] = await connection.query(
             `DELETE 
@@ -974,7 +960,7 @@ const deleteOrder = async (req,res) => {
             AND
                 o.order_id = ? 
             `,
-            [username,order_id]
+            [username, order_id]
         );
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Order not found' });
@@ -990,7 +976,7 @@ const deleteOrder = async (req,res) => {
 const createOrderPublisher = async (req, res) => {
     try {
         const { pu_order_status, pu_order_time, username, pu_id, books } = req.body;
-        
+
         const pu_order_time_change = dayjs(pu_order_time).format('YYYY-MM-DD');
         const [result] = await connection.query(
             `INSERT INTO order_publisher (pu_order_status, pu_order_time, username, pu_id) VALUES (?, ?, ?, ?)`,
@@ -1014,7 +1000,7 @@ const getUserInfo = async (req, res) => {
     try {
         // get user info from customer table to get bank_acc and address
         const { username } = req.params;
-        const {order_id} = req.body;
+        const { order_id } = req.body;
         const [rows] = await connection.query(
             `SELECT 
                 c.username, u.name, u.phone_number, u.email, c.address, c.bank_acc, u.password
@@ -1038,7 +1024,7 @@ const getUserInfo = async (req, res) => {
 const clearCart = async (req, res) => {
     try {
         const { username } = req.params;
-        const {order_id} = req.body;
+        const { order_id } = req.body;
         const [result] = await connection.query(
             `UPDATE
                 order_book ob
@@ -1050,7 +1036,7 @@ const clearCart = async (req, res) => {
                 o.username = ?
             AND
                 o.order_id = ?`,
-            [username,order_id]
+            [username, order_id]
         );
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Order not found' });
@@ -1072,8 +1058,8 @@ const clearCart = async (req, res) => {
 
 
 const getEmployeeNotifications = async (req, res) => {
-    try{
-        const {temp_noti} = await connection.query(
+    try {
+        const { temp_noti } = await connection.query(
             'SELECT * FROM notification;'
         )
         //console.log(temp_noti);
@@ -1098,21 +1084,21 @@ const getEmployeeNotifications = async (req, res) => {
                     WHEn 'Low' THEN 3
                 END,
                 create_at DESC
-            ` 
+            `
         );
 
         //console.log(notifications)
         const groupedNotifications = notifications.reduce((acc, notification) => {
             const date = new Date(notification.create_at).toLocaleDateString();
-            if (!acc[date]){
+            if (!acc[date]) {
                 acc[date] = {
                     read: [],
                     unread: []
                 };
             }
-            if (notification.is_read){
+            if (notification.is_read) {
                 acc[date].read.push(notification);
-            }else{
+            } else {
                 acc[date].unread.push(notification);
             }
             return acc;
@@ -1121,22 +1107,22 @@ const getEmployeeNotifications = async (req, res) => {
 
 
         res.status(200).json({
-            success:true,
+            success: true,
             notifications: groupedNotifications,
             total_count: notifications.length,
             unread_count: notifications.filter(n => !n.is_read).length
         });
-    }catch(error){
+    } catch (error) {
         //console.log("Error in getEmployeeNotifications: ", error);
         res.status(500).json({
-            success:false,
+            success: false,
             message: error.message
         });
     }
 };
 
-const getEmployeeUnreadNotifications   = async (req, res) => {
-    try{
+const getEmployeeUnreadNotifications = async (req, res) => {
+    try {
         const [notifications] = await connection.query(
             `
             SELECT 
@@ -1159,42 +1145,42 @@ const getEmployeeUnreadNotifications   = async (req, res) => {
                     WHEn 'Low' THEN 3
                 END,
                 create_at DESC
-            ` 
+            `
         );
         res.status(200).json({
-            success:true,
+            success: true,
             notifications,
             unread_count: notifications.length
         });
-    }catch(error){
+    } catch (error) {
         console.error("Error in getEmployeeUnreadNotifications: ", error);
         res.status(500).json({
-            success:false,
+            success: false,
             message: error.message
         });
     };
 };
 
 
-const getCustomerNotifications  = async (req, res) => {
-    try{
+const getCustomerNotifications = async (req, res) => {
+    try {
         const { username } = req.params;
         const [orders] = await connection.query(
             `
             SELECT order_id FROM \`ORDER\`  WHERE username = ?
             `, [username]
         );
-        if (orders.length === 0){
+        if (orders.length === 0) {
             return res.status(200).json({
-                success:true,
+                success: true,
                 notifications: {},
                 total_count: 0,
                 unread_count: 0
             });
-        } 
+        }
 
         const orderIds = orders.map(order => order.order_id)
-        const [notifications] = await  connection.query(
+        const [notifications] = await connection.query(
             `
             SELECT 
                 n.*,
@@ -1209,58 +1195,58 @@ const getCustomerNotifications  = async (req, res) => {
             WHERE n.reference_id IN (?)
             AND n.notification_type IN ('NewOrder', 'StockWarning', 'OrderStatus')
             ORDER BY n.create_at DESC
-            `,[orderIds]
+            `, [orderIds]
         );
         const groupedNotifications = notifications.reduce((acc, notification) => {
             const date = new Date(notification.create_at).toLocaleDateString();
-            if (!acc[date]){
+            if (!acc[date]) {
                 acc[date] = {
                     read: [],
                     unread: []
                 };
             }
-            if (notification.is_read){
+            if (notification.is_read) {
                 acc[date].read.push(notification)
-            }else{
+            } else {
                 acc[date].unread.push(notification)
             }
             return acc;
-        },{});
+        }, {});
         res.status(200).json({
-            success:true,
+            success: true,
             notifications: groupedNotifications,
             total_count: notifications.length,
             unread_count: notifications.filter(n => !n.is_read).length
         })
-    }catch(error){
+    } catch (error) {
         console.error("Error in getCustomerNotifications: ", error);
         res.status(500).json({
-            success:false,
+            success: false,
             message: error.message
         });
     };
 };
 
 
-const getCustomerUnreadNotifications   = async (req, res) => {
-    try{
+const getCustomerUnreadNotifications = async (req, res) => {
+    try {
         const { username } = req.params;
         const [orders] = await connection.query(
             `
             SELECT order_id FROM \`ORDER\`  WHERE username = ?
             `, [username]
         );
-        if (orders.length === 0){
+        if (orders.length === 0) {
             return res.status(200).json({
-                success:true,
+                success: true,
                 notifications: {},
                 total_count: 0,
                 unread_count: 0
             });
-        } 
+        }
 
         const orderIds = orders.map(order => order.order_id)
-        const [notifications] = await  connection.query(
+        const [notifications] = await connection.query(
             `
             SELECT 
                 n.*,
@@ -1276,51 +1262,51 @@ const getCustomerUnreadNotifications   = async (req, res) => {
             AND n.notification_type IN ('NewOrder', 'StockWarning', 'OrderStatus')
             AND n.is_read = false
             ORDER BY n.create_at DESC
-            `,[orderIds]
+            `, [orderIds]
         );
         const groupedNotifications = notifications.reduce((acc, notification) => {
             const date = new Date(notification.create_at).toLocaleDateString();
-            if (!acc[date]){
+            if (!acc[date]) {
                 acc[date] = {
                     read: [],
                     unread: []
                 };
             }
-            if (notification.is_read){
+            if (notification.is_read) {
                 acc[date].read.push(notification)
-            }else{
+            } else {
                 acc[date].unread.push(notification)
             }
             return acc;
-        },{});
+        }, {});
         res.status(200).json({
-            success:true,
+            success: true,
             notifications: groupedNotifications,
             total_count: notifications.length,
             unread_count: notifications.filter(n => !n.is_read).length
         })
-    }catch(error){
+    } catch (error) {
         console.error("Error in getCustomerNotifications: ", error);
         res.status(500).json({
-            success:false,
+            success: false,
             message: error.message
         });
     };
 };
 
 const markNotificationAsRead = async (req, res) => {
-    try{
-        const {notification_id} = req.params;
-        const {username, user_type} = req.body;
-        if (user_type === 'customer'){
-            const [orders]  = await connection.query(
+    try {
+        const { notification_id } = req.params;
+        const { username, user_type } = req.body;
+        if (user_type === 'customer') {
+            const [orders] = await connection.query(
                 `SELECT order_id FROM \`ORDER\` WHERE username = ? `, [username]
             )
             const orderIds = orders.map(order => order.order_id);
             const [notification] = await connection.query(
                 `SELECT reference_id FROM NOTIFICATION WHERE notification_id = ?`, [notification_id]
             )
-            if (!notification || !orderIds.includes(notification[0].reference_id)){
+            if (!notification || !orderIds.includes(notification[0].reference_id)) {
                 return res.status(403).json({
                     success: false,
                     message: "Inside markNotificationAsRead, has no authorization to this access"
@@ -1332,7 +1318,7 @@ const markNotificationAsRead = async (req, res) => {
             `UPDATE NOTIFICATION SET is_read = true WHERE notification_id = ?`, [notification_id]
         );
 
-        if (result.affectedRows === 0){
+        if (result.affectedRows === 0) {
             return res.status(404).json({
                 success: false,
                 message: "Notification not found!"
@@ -1343,7 +1329,7 @@ const markNotificationAsRead = async (req, res) => {
             success: true,
             message: "Notification marked as read successfully!"
         });
-    }catch(error){
+    } catch (error) {
         console.error('Error in markNotificationAsRead: ', error);
         res.status(500).json({
             success: false,
@@ -1353,18 +1339,18 @@ const markNotificationAsRead = async (req, res) => {
 };
 
 const deleteNotification = async (req, res) => {
-    try{
-        const {notification_id} = req.params;
-        const {username, user_type} = req.body;
-        if (user_type === 'customer'){
-            const [orders]  = await connection.query(
+    try {
+        const { notification_id } = req.params;
+        const { username, user_type } = req.body;
+        if (user_type === 'customer') {
+            const [orders] = await connection.query(
                 `SELECT order_id FROM \`ORDER\` WHERE username = ? `, [username]
             )
             const orderIds = orders.map(order => order.order_id);
             const [notification] = await connection.query(
                 `SELECT reference_id FROM NOTIFICATION WHERE notification_id = ?`, [notification_id]
             )
-            if (!notification || !orderIds.includes(notification[0].reference_id)){
+            if (!notification || !orderIds.includes(notification[0].reference_id)) {
                 return res.status(403).json({
                     success: false,
                     message: "Inside markNotificationAsRead, has no authorization to this access"
@@ -1387,10 +1373,10 @@ const deleteNotification = async (req, res) => {
         });
 
 
-    }catch(error){
+    } catch (error) {
         console.error("Error in deletNotification: ", error);
         res.status(500).json({
-            success:false,
+            success: false,
             message: error.message
         });
     };
@@ -1427,8 +1413,8 @@ const deleteNotification = async (req, res) => {
 // };
 
 // -- hàm này retrieve hết order logs với name của user, và được sắp xếp theo thứ tự. Hàm này cũng trả về thông tin employee tac động vào
-const getAllOrderLogs = async(req, res) => {
-    try{
+const getAllOrderLogs = async (req, res) => {
+    try {
         const [logs] = await connection.query(
             `SELECT
                 l.*,
@@ -1441,16 +1427,16 @@ const getAllOrderLogs = async(req, res) => {
             `
         );
         res.status(200).json(logs);
-    }catch(error){
+    } catch (error) {
         console.error("Error in getAllOrderLogs: ", error);
-        res.status(500).json({message:error.message});
+        res.status(500).json({ message: error.message });
     }
 }
 
 // this function will get the logs for a specific order
 const getOrderLogs = async (req, res) => {
-    try{
-        const {order_id} = req.params;
+    try {
+        const { order_id } = req.params;
         //console.log(order_id)
         const [logs] = await connection.query(
             `
@@ -1461,21 +1447,21 @@ const getOrderLogs = async (req, res) => {
             LEFT JOIN USER u ON l.action_by = u.username
             WHERE l.order_id = ?
             ORDER BY l.action_timestamp DESC
-            `, [order_id] 
+            `, [order_id]
         )
 
-        if (logs.length === 0){
+        if (logs.length === 0) {
             return res.status(404).json({
-                success:false,
+                success: false,
                 message: "No logs found for this order!"
             });
         };
         res.status(200).json({
-            success:true,
+            success: true,
             order_id,
             logs
         });
-    }catch(error){
+    } catch (error) {
         console.error('Error in getOrderLogs:', error);
         res.status(500).json({
             success: false,
@@ -1485,8 +1471,8 @@ const getOrderLogs = async (req, res) => {
 };
 // this function will get the logs for a specific customers
 const getCustomerOrderLogs = async (req, res) => {
-    try{
-        const {username} = req.params;
+    try {
+        const { username } = req.params;
         const [logs] = await connection.query(
             `
             SELECT 
@@ -1500,15 +1486,15 @@ const getCustomerOrderLogs = async (req, res) => {
             ORDER BY l.action_timestamp DESC  
             `, [username]
         )
-        if (logs.length === 0){
+        if (logs.length === 0) {
             return res.status(404).json({
-                success:false,
-                message:"No order logs not found for this customer"
+                success: false,
+                message: "No order logs not found for this customer"
             });
         }
 
-        const groupedLogs = logs.reduce((acc,log) => {
-            if (!acc[log.order_id]){
+        const groupedLogs = logs.reduce((acc, log) => {
+            if (!acc[log.order_id]) {
                 acc[log.order_id] = {
                     order_id: log.order_od,
                     current_status: log.current_status,
@@ -1533,18 +1519,18 @@ const getCustomerOrderLogs = async (req, res) => {
             username,
             orders: Object.values(groupedLogs)
         })
-    }catch(error){
+    } catch (error) {
         console.error("Error in getCustomerOrderLogs: ", error);
         res.status(500).json({
-            success:false,
+            success: false,
             message: error.message
         });
     }
 }
 
-const  getOrderStatusHistory = async (req, res) => {
-    try{
-        const {order_id} = req.params;
+const getOrderStatusHistory = async (req, res) => {
+    try {
+        const { order_id } = req.params;
         //console.log(order_id);
         const [logs] = await connection.query(
             `
@@ -1560,7 +1546,7 @@ const  getOrderStatusHistory = async (req, res) => {
             LEFT JOIN USER u ON l.action_by = u.username
             WHERE l.order_id = ? AND l.action_type = 'StatusChanged'
             ORDER BY l.action_timestamp ASC 
-            `,[order_id]
+            `, [order_id]
         )
         // if (logs.length === 0){
         //     return res.status(404).json({
@@ -1570,15 +1556,15 @@ const  getOrderStatusHistory = async (req, res) => {
         // }
 
         res.status(200).json({
-            success:true,
+            success: true,
             order_id,
             status_history: logs
         })
 
-    }catch(error){
+    } catch (error) {
         console.error('Error in getOrderStatusHistory:', error);
         return res.status(500).json({
-            success:false,
+            success: false,
             message: error.message
         })
     }

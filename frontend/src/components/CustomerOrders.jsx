@@ -1,98 +1,98 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { BookOpen, Clock, CheckCircle, XCircle, Trash2  } from 'lucide-react';
+import { BookOpen, Clock, CheckCircle, XCircle, Trash2 } from 'lucide-react';
 import api from '../api/axios';
 import OrderLogHistory from './employeeDashboard/modal/OrderLogHistory';
 
 const CustomerOrders = () => {
-    const { userInfo, logout, isAuthenticated } = useAuth();
-    const [orders, setOrders] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [cancelModalOpen, setCancelModalOpen] = useState(false);
-    const [selectedOrderToCancel, setSelectedOrderToCancel] = useState(null);
+  const { userInfo, logout, isAuthenticated } = useAuth();
+  const [orders, setOrders] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [selectedOrderToCancel, setSelectedOrderToCancel] = useState(null);
 
-    const [selectedOrderId, setSelectedOrderId] = useState(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const openOrderLogs = (orderId) => {
-        setSelectedOrderId(orderId);
-        setIsModalOpen(true);
+
+  const openOrderLogs = (orderId) => {
+    setSelectedOrderId(orderId);
+    setIsModalOpen(true);
+  };
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      logout();
+      return;
+    }
+
+    const fetchOrders = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(`${api.defaults.baseURL}api/books/orders`);
+        console.log(`${userInfo.username}`)
+        const data = await response.json();
+        setOrders(data);
+      } catch (err) {
+        console.error("Error fetching orders:", err);
+      } finally {
+        setIsLoading(false);
+      }
     };
-  
-    useEffect(() => {
-        if (!isAuthenticated) {
-            logout();
-            return;
-        }
 
-        const fetchOrders = async () => {
-            try {
-                setIsLoading(true);
-                const response = await fetch(`${api.defaults.baseURL}api/books/orders/${userInfo.username}`);
-                
-                const data = await response.json();
-                setOrders(data);
-            } catch (err) {
-                console.error("Error fetching orders:", err);
-            } finally {
-                setIsLoading(false);
-            }
-        };
+    fetchOrders();
+  }, [isAuthenticated, logout, userInfo.username]);
+  const groupOrdersByOrderId = (orders) => {
+    return orders.reduce((acc, order) => {
+      const existingOrder = acc.find(group => group.orderId === order.order_id);
 
-        fetchOrders();
-    }, [isAuthenticated, logout, userInfo.username]);
-    const groupOrdersByOrderId = (orders) => {
-        return orders.reduce((acc, order) => {
-          const existingOrder = acc.find(group => group.orderId === order.order_id);
-          
-          if (existingOrder) {
-            existingOrder.items.push(order);
-            existingOrder.totalQuantity += order.quantity;
-            existingOrder.totalPrice += order.price * order.quantity;
-          } else {
-            acc.push({
-              orderId: order.order_id,
-              items: [order],
-              totalQuantity: order.quantity,
-              totalPrice: order.price * order.quantity,
-              orderStatus: order.order_status,
-              orderTime: order.order_time
-            });
-          }
-          
-          return acc;
-        }, []);
-      };
-    const getStatusIcon = (status) => {
-        switch (status) {
-            case 'pending':
-                return <Clock className="text-yellow-500 mr-2" />;
-            case 'completed':
-                return <CheckCircle className="text-green-500 mr-2" />;
-            case 'cancelled':
-                return <XCircle className="text-red-500 mr-2" />;
-            default:
-                return null;
-        }
-    };
- // Handle order cancellation
- const handleCancelOrder = async () => {
+      if (existingOrder) {
+        existingOrder.items.push(order);
+        existingOrder.totalQuantity += order.quantity;
+        existingOrder.totalPrice += order.price * order.quantity;
+      } else {
+        acc.push({
+          orderId: order.order_id,
+          items: [order],
+          totalQuantity: order.quantity,
+          totalPrice: order.price * order.quantity,
+          orderStatus: order.order_status,
+          orderTime: order.order_time
+        });
+      }
+
+      return acc;
+    }, []);
+  };
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'pending':
+        return <Clock className="text-yellow-500 mr-2" />;
+      case 'completed':
+        return <CheckCircle className="text-green-500 mr-2" />;
+      case 'cancelled':
+        return <XCircle className="text-red-500 mr-2" />;
+      default:
+        return null;
+    }
+  };
+  // Handle order cancellation
+  const handleCancelOrder = async () => {
     if (!selectedOrderToCancel) return;
 
     try {
-      
+
       // API call to cancel the order  /order/:username/:order_id/status
       await api.patch(`${api.defaults.baseURL}api/books//order/${userInfo.username}/${selectedOrderToCancel}/status`,
         { order_status: 'Cancelled' }
       );
       // Update local state to reflect cancelled order
-      const updatedOrders = orders.map(order => 
-        order.order_id === selectedOrderToCancel 
-          ? { ...order, order_status: 'Cancelled' } 
+      const updatedOrders = orders.map(order =>
+        order.order_id === selectedOrderToCancel
+          ? { ...order, order_status: 'Cancelled' }
           : order
       );
-      
+
       setOrders(updatedOrders);
       setCancelModalOpen(false);
       setSelectedOrderToCancel(null);
@@ -140,25 +140,24 @@ const CustomerOrders = () => {
                   <div className="bg-gray-100 p-4 flex justify-between items-center">
                     <div className="flex items-center">
                       {getStatusIcon(orderGroup.orderStatus)}
-                      <span className={`text-sm font-medium capitalize ${
-                        orderGroup.orderStatus === "Pending"
-                          ? "text-yellow-600"
-                          : orderGroup.orderStatus === "Completed"
+                      <span className={`text-sm font-medium capitalize ${orderGroup.orderStatus === "Pending"
+                        ? "text-yellow-600"
+                        : orderGroup.orderStatus === "Completed"
                           ? "text-green-600"
                           : "text-red-600"
-                      }`}>
+                        }`}>
                         {orderGroup.orderStatus} Order
                       </span>
                     </div>
                     <div className="flex items-center space-x-4">
                       <div className="text-sm text-gray-600">
-                        Order ID: {orderGroup.orderId} | 
+                        Order ID: {orderGroup.orderId} |
                         Ordered on: {new Date(orderGroup.orderTime).toLocaleDateString()}
-                        <button 
-                            onClick={() => openOrderLogs(orderGroup.orderId)}
-                            className="ml-2 text-blue-600 hover:text-blue-800 hover:underline transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 rounded"
+                        <button
+                          onClick={() => openOrderLogs(orderGroup.orderId)}
+                          className="ml-2 text-blue-600 hover:text-blue-800 hover:underline transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 rounded"
                         >
-                            Open Order Logs
+                          Open Order Logs
                         </button>
                       </div>
                       <button
@@ -168,11 +167,10 @@ const CustomerOrders = () => {
                             setCancelModalOpen(true);
                           }
                         }}
-                        className={`transition-colors ${
-                          orderGroup.orderStatus === 'Pending' 
-                            ? 'text-red-500 hover:text-red-700' 
-                            : 'text-gray-300 cursor-not-allowed'
-                        }`}
+                        className={`transition-colors ${orderGroup.orderStatus === 'Pending'
+                          ? 'text-red-500 hover:text-red-700'
+                          : 'text-gray-300 cursor-not-allowed'
+                          }`}
                         disabled={orderGroup.orderStatus !== 'Pending'}
                       >
                         <Trash2 className="w-5 h-5" />
@@ -184,8 +182,8 @@ const CustomerOrders = () => {
                   <div className="p-6">
                     <div className="space-y-4">
                       {orderGroup.items.map((item, itemIndex) => (
-                        <div 
-                          key={itemIndex} 
+                        <div
+                          key={itemIndex}
                           className="flex items-center border-b pb-4 last:border-b-0"
                         >
                           <img

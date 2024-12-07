@@ -54,7 +54,7 @@ router.get('/authors', getAuthors);
 
 router.get('/genres', getGenres);
 router.get('/publishers', getPublishers);
-router.get('/orders/:username', getOrders);
+router.get('/orders', getOrders);
 router.get('/order_publisher', getPublisherOrders);
 router.get('/search', searchBookTitles);
 router.get('/order_publisher/:employeeUsername/:pu_order_id', getPublisherOrder);
@@ -90,10 +90,10 @@ router.put('/author/:author_id', updateAuthor); //xong
 // employee dashboard
 router.delete('/author/:author_id', deleteAuthor); //xong
 // dùng để admin xóa author
-        
+
 
 router.patch('/order/:username/:order_id/status', updateOrderStatus);
-router.patch('/pubisher-order/:pu_order_id/status',updatePublisherOrderStatus)
+router.patch('/pubisher-order/:pu_order_id/status', updatePublisherOrderStatus)
 
 
 
