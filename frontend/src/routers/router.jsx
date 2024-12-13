@@ -18,6 +18,7 @@ import CustomerOrdersDetail from "../components/employeeDashboard/CustomerOrders
 import PublisherOrdersDetail from "../components/employeeDashboard/PublisherOrdersDetail";
 
 import Checkout from "../shop/Checkout";
+import Authors from "../components/Authors";
 
 const AuthenticatedLayout = ({children}) => {
   const{userInfo} = useAuth();
@@ -86,6 +87,12 @@ const router = createBrowserRouter([
             element: <ProtectedRoute>
               <About/>
             </ProtectedRoute>
+          },
+          {
+            path: 'author',
+            element : <ProtectedRoute>
+              <Authors/>
+            </ProtectedRoute>  
           },
           {
             path: 'blog',

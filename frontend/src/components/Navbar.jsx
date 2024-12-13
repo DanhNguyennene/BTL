@@ -48,6 +48,7 @@ const Navbar = () => {
   const navItems = [
     { link: "Home", path: isAuthenticated? `/${userInfo.username}/` : '/' },
     { link: "Shop", path: isAuthenticated?`/${userInfo.username}/shop` : '/shop' },
+    { link: "Authors", path : isAuthenticated? `/${userInfo.username}/author` : '/author'}
   ];
 
   const renderAuthenticatedMenu = () => {
@@ -133,7 +134,6 @@ const Navbar = () => {
               <BookOpen className="h-6 w-6" />
               <span className="font-bold text-xl">BookStore</span>
             </Link>
-
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
               {navItems.map(({ link, path }) => (
@@ -163,7 +163,6 @@ const Navbar = () => {
                   )}
                 </Link>
               )}
-              
               <div className='relative'>
                 <button 
                   className="text-gray-600 hover:text-blue-600 transition-colors flex items-center space-x-2"

@@ -65,10 +65,8 @@ const getBook = async (req, res) => {
 
 const createBook = async (req, res) => {
     try {
-        // title, price, author_id, pu_id, imageURL, as well as [genre_id], so we need to update book_genre table
         const { title, price, author_id, pu_id, imageURL, genre_ids } = req.body;
         const newBook = await createABook(title, price, author_id, pu_id, imageURL);
-        // update book_genre table
         for (let i = 0; i < genre_ids.length; i++) {
             await connection.query(
                 `INSERT INTO book_genre (book_id, gen_id) VALUES (?, ?)`,
@@ -85,9 +83,7 @@ const updateBook = async (req, res) => {
     try {
         const book_id = req.params.book_id;
         const { title, price, author_id, pu_id, genre_ids, imageURL } = req.body;
-        //console.log(req.body);
         const bookUpdated = await updateABook(book_id, title, price, author_id, pu_id, imageURL);
-        //console.log(genre_ids)
         if (!bookUpdated) {
             return res.status(404).json({ message: 'Book not found' });
         }
@@ -143,7 +139,6 @@ const signUp = async (req, res) => {
             address,
             bank_acc
         } = req.body;
-        //console.log("Inside signup: ", username, name, phone_number, email, password, address, bank_acc)
         if (!username || !name || !phone_number || !email || !password || !address || !bank_acc) {
             return res.status(400).json({
                 success: false,
@@ -322,12 +317,10 @@ const getOrdersCustomer = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
 const getOrder = async (req, res) => {
     try {
         const { username, order_id } = req.params;
-        // find order where username = username
-        // join with order_book table to get books in each order
-        // and then join the book_id with book table to get book title
         const [rows] = await connection.query(
             `SELECT 
                 \`order\`.*,
@@ -356,106 +349,6 @@ const getOrder = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
-
-// const updateOrderStatus = async(req, res) => {
-//     let updateConnection = null;
-//     let notificationConnection = null;
-
-
-//     try {
-//         updateConnection = await connection.getConnection();
-//         notificationConnection = await connection.getConnection();
-
-//         await updateConnection.beginTransaction();
-
-//         const { username, order_id } = req.params;
-//         const { order_status } = req.body;
-//         const validStatuses = ['inCart','Pending', 'Processing', 'Completed', 'Cancelled', 'Failed'];
-
-//         if (!validStatuses.includes(order_status)) {
-//             await updateConnection.rollback();
-//             return res.status(400).json({
-//                 success: false,
-//                 message: "Invalid order status"
-//             });
-//         }
-
-//         const [result] = await updateConnection.query(
-//             `UPDATE \`ORDER\` SET order_status = ? WHERE order_id = ? AND username = ?`, 
-//             [order_status, order_id, username]
-//         );
-
-//         if (result.affectedRows === 0) {
-//             await updateConnection.rollback();
-//             return res.status(404).json({
-//                 success: false,
-//                 message: 'Order not found'
-//             });
-//         }
-
-
-//         const [notifications] = await notificationConnection.query(
-//             `SELECT * FROM NOTIFICATION 
-//              WHERE reference_id = ? 
-//              AND notification_type = 'StockWarning' 
-//              AND message LIKE '%Insufficient stock%'
-//              AND create_at >= NOW() - INTERVAL 5 SECOND`,
-//             [order_id]
-//         );
-//         console.log(notifications)
-
-//         if (notifications.length > 0) {
-//             await updateConnection.rollback();
-//             return res.status(400).json({
-//                 success: false,
-//                 message: "Cannot complete order due to insufficient stock",
-//                 notifications: notifications.map(n => n.message)
-//             });
-//         }
-
-//         await updateConnection.commit();
-
-//         res.json({
-//             success: true,
-//             message: "Order status has been updated"
-//         });
-//     } catch(error) { 
-//         if (updateConnection) {
-//             try {
-//                 await updateConnection.rollback();
-//             } catch (rollbackError) {
-//                 console.error('Error rolling back transaction:', rollbackError);
-//             }
-//         }
-
-//         console.error('Error in updateOrderStatus:', error);
-
-//         if (error.code === 'ER_SIGNAL_EXCEPTION') {
-//             res.status(400).json({
-//                 success: false,
-//                 message: error.sqlMessage
-//             });
-//         } else {
-//             res.status(500).json({
-//                 success: false,
-//                 message: "An error occurred while updating order status",
-//                 error: error.message
-//             });
-//         }
-//     } finally {
-//         try {
-//             if (updateConnection) {
-//                  updateConnection.release();
-//             }
-//             if (notificationConnection) {
-//                  notificationConnection.release();
-//             }
-//         } catch (releaseError) {
-//             console.error('Error releasing connections:', releaseError);
-//         }
-//     }
-// }
-
 
 const updateOrderStatus = async (req, res) => {
     let updateConnection = null;
@@ -783,7 +676,6 @@ const deleteGenre = async (req, res) => {
 const createPublisher = async (req, res) => {
     try {
         const { pu_name, pu_phone_number, pu_address } = req.body;
-        // //console.log(req.body);
         const [result] = await connection.query(
             `INSERT INTO publisher (pu_name, pu_phone_number, pu_address) VALUES (?, ?, ?)`,
             [pu_name, pu_phone_number, pu_address]
@@ -813,7 +705,6 @@ const updatePublisher = async (req, res) => {
 const deletePublisher = async (req, res) => {
     try {
         const pu_id = req.params.pu_id;
-        // //console.log(req.params);
         const [result] = await connection.query(
             `DELETE FROM publisher WHERE pu_id = ?`,
             [pu_id]
@@ -997,7 +888,6 @@ const deleteOrder = async (req, res) => {
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Order not found' });
         }
-        // //console.log("HELLOs")
         res.status(201).json({ message: 'Order deleted successfully' });
     } catch (error) {
         console.error('Error in deleteOrderBook:', error);
@@ -1414,36 +1304,6 @@ const deleteNotification = async (req, res) => {
     };
 };
 
-
-// const markAllAsRead = async(req, res) => {
-//     try{
-//         const { username, user_type } = req.body;
-//         let query = `UPDATE NOTIFICATION SET is_read = true`;
-//         const params = []
-//         if (user_type === 'customer'){
-//             const [orders] = await connection.query(
-//                 `SELECT order_id FROM \`ORDER\` WHERE username = ?`,[username]
-//             );
-//             const orderIds = orders.map(order => order.order_id)
-//             if (orderIds.length > 0){
-//                 query += ` WHERE reference_id IN (?)`
-//                 params.push(orderIds);
-//             }
-//         };
-//         await connection.query(orderIds);
-//         res.status(200).json({
-//             success:true,
-//             message: "All notifications marked as read" 
-//         })
-//     }catch(error){
-//         console.error('Error in markAllAsRead: ', error);
-//         res.status(500).json({
-//             success: false,
-//             message: error.message
-//         });
-//     };
-// };
-
 // -- hàm này retrieve hết order logs với name của user, và được sắp xếp theo thứ tự. Hàm này cũng trả về thông tin employee tac động vào
 const getAllOrderLogs = async (req, res) => {
     try {
@@ -1642,12 +1502,8 @@ module.exports = {
     getPublisherOrder,
     getUserInfo,
     updateOrderStatus,
-
-    // getNotifications,
-    // getUnreadNotifications,
     markNotificationAsRead,
     deleteNotification,
-    // getNotificationCount,
     getAllOrderLogs,
     getOrderLogs,
     getCustomerOrderLogs,

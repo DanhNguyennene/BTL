@@ -3,8 +3,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { BookOpen, Clock, CheckCircle, XCircle, Trash2 } from 'lucide-react';
 import api from '../api/axios';
 import OrderLogHistory from './employeeDashboard/modal/OrderLogHistory';
-
 const CustomerOrders = () => {
+
+
   const { userInfo, logout, isAuthenticated } = useAuth();
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -119,7 +120,6 @@ const CustomerOrders = () => {
             </div>
           </div>
         </div>
-
         {/* Orders Content */}
         <div>
           {isLoading ? (
